@@ -1,0 +1,72 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "MiProyecto.Api/1.0.0": {
+        "dependencies": {
+          "MiProyecto.Application": "1.0.0",
+          "MiProyecto.Infrastructure": "1.0.0"
+        },
+        "runtime": {
+          "MiProyecto.Api.dll": {}
+        }
+      },
+      "MiProyecto.Application/1.0.0": {
+        "dependencies": {
+          "MiProyecto.Domain": "1.0.0"
+        },
+        "runtime": {
+          "MiProyecto.Application.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "MiProyecto.Domain/1.0.0": {
+        "runtime": {
+          "MiProyecto.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "MiProyecto.Infrastructure/1.0.0": {
+        "dependencies": {
+          "MiProyecto.Application": "1.0.0"
+        },
+        "runtime": {
+          "MiProyecto.Infrastructure.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "MiProyecto.Api/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "MiProyecto.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "MiProyecto.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "MiProyecto.Infrastructure/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

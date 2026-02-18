@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MiProyecto.Api/MiProyecto.Api.csproj" />
+    <Project Path="src/MiProyecto.Application/MiProyecto.Application.csproj" />
+    <Project Path="src/MiProyecto.Blazor/MiProyecto.Blazor.csproj" />
+    <Project Path="src/MiProyecto.Domain/MiProyecto.Domain.csproj" />
+    <Project Path="src/MiProyecto.Infrastructure/MiProyecto.Infrastructure.csproj" />
+  </Folder>
+</Solution>

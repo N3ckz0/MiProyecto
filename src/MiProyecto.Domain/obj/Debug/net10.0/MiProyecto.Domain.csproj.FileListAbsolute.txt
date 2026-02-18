@@ -1,0 +1,11 @@
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\bin\Debug\net10.0\MiProyecto.Domain.deps.json
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\bin\Debug\net10.0\MiProyecto.Domain.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\bin\Debug\net10.0\MiProyecto.Domain.pdb
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\obj\Debug\net10.0\MiProyecto.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\obj\Debug\net10.0\MiProyecto.Domain.AssemblyInfoInputs.cache
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\obj\Debug\net10.0\MiProyecto.Domain.AssemblyInfo.cs
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\obj\Debug\net10.0\MiProyecto.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\obj\Debug\net10.0\MiProyecto.Domain.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\obj\Debug\net10.0\refint\MiProyecto.Domain.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\obj\Debug\net10.0\MiProyecto.Domain.pdb
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Domain\obj\Debug\net10.0\ref\MiProyecto.Domain.dll

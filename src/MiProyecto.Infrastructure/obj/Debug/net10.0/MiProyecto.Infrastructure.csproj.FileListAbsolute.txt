@@ -1,0 +1,17 @@
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\bin\Debug\net10.0\MiProyecto.Infrastructure.deps.json
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\bin\Debug\net10.0\MiProyecto.Infrastructure.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\bin\Debug\net10.0\MiProyecto.Infrastructure.pdb
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\bin\Debug\net10.0\MiProyecto.Application.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\bin\Debug\net10.0\MiProyecto.Domain.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\bin\Debug\net10.0\MiProyecto.Application.pdb
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\bin\Debug\net10.0\MiProyecto.Domain.pdb
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\obj\Debug\net10.0\MiProyecto.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\obj\Debug\net10.0\MiProyecto.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\obj\Debug\net10.0\MiProyecto.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\obj\Debug\net10.0\MiProyecto.Infrastructure.AssemblyInfo.cs
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\obj\Debug\net10.0\MiProyecto.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\obj\Debug\net10.0\MiProyec.8930B07F.Up2Date
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\obj\Debug\net10.0\MiProyecto.Infrastructure.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\obj\Debug\net10.0\refint\MiProyecto.Infrastructure.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\obj\Debug\net10.0\MiProyecto.Infrastructure.pdb
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Infrastructure\obj\Debug\net10.0\ref\MiProyecto.Infrastructure.dll

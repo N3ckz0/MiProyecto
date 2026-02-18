@@ -1,0 +1,15 @@
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\bin\Debug\net10.0\MiProyecto.Application.deps.json
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\bin\Debug\net10.0\MiProyecto.Application.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\bin\Debug\net10.0\MiProyecto.Application.pdb
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\bin\Debug\net10.0\MiProyecto.Domain.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\bin\Debug\net10.0\MiProyecto.Domain.pdb
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\obj\Debug\net10.0\MiProyecto.Application.csproj.AssemblyReference.cache
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\obj\Debug\net10.0\MiProyecto.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\obj\Debug\net10.0\MiProyecto.Application.AssemblyInfoInputs.cache
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\obj\Debug\net10.0\MiProyecto.Application.AssemblyInfo.cs
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\obj\Debug\net10.0\MiProyecto.Application.csproj.CoreCompileInputs.cache
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\obj\Debug\net10.0\MiProyec.73CC4F8B.Up2Date
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\obj\Debug\net10.0\MiProyecto.Application.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\obj\Debug\net10.0\refint\MiProyecto.Application.dll
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\obj\Debug\net10.0\MiProyecto.Application.pdb
+C:\Users\Acontrol_PC02\Desktop\net\MiProyecto\src\MiProyecto.Application\obj\Debug\net10.0\ref\MiProyecto.Application.dll
