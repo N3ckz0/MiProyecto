@@ -1,0 +1,51 @@
+# ========================================
+# Archivos binarios y de build
+# ========================================
+bin/
+obj/
+out/
+
+# ========================================
+# Visual Studio / Rider / IDE
+# ========================================
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.idea/
+.vscode/
+
+# ========================================
+# Archivos de log
+# ========================================
+*.log
+*.tmp
+
+# ========================================
+# Archivos generados por Blazor / WebAssembly
+# ========================================
+wwwroot/_framework/
+MiProyecto.Blazor.styles.css
+
+# ========================================
+# Paquetes NuGet
+# ========================================
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# ========================================
+# Respaldo de archivos
+# ========================================
+*.bak
+*.backup
+*.swp
+*~
+
+# ========================================
+# Archivos de configuración locales
+# ========================================
+appsettings.Development.json
+.env
