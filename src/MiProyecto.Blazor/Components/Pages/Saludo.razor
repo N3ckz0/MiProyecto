@@ -1,0 +1,24 @@
+@page "/saludo"
+@inject HttpClient Http
+
+<h3>Consumiendo API</h3>
+
+<p>@mensaje</p>
+
+<button @onclick="ObtenerSaludo">Obtener saludo</button>
+
+@code {
+    private string mensaje = "Sin datos";
+
+    private async Task ObtenerSaludo()
+    {
+        try
+        {
+            mensaje = await Http.GetStringAsync("api/saludo");
+        }
+        catch (Exception ex)
+        {
+            mensaje = ex.Message;
+        }
+    }
+}
