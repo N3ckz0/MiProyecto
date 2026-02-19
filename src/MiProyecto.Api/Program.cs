@@ -1,8 +1,9 @@
-using MiProyecto.Aplicacion.Saludo;
+using MiProyecto.Aplicacion.Clientes;
+using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<ISaludoService, SaludoService>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
 
 builder.Services.AddControllers();
 
