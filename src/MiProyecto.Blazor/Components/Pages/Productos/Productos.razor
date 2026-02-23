@@ -1,0 +1,48 @@
+@page "/productos"
+@inject HttpClient Http
+@using MiProyecto.Domain
+
+<h3>Productos</h3>
+<a href="/producto_agregar">Agregar</a>
+
+@if (productos == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <table class="w-100 table">
+    	<thead>
+    		<tr>
+    			<th>ID</th>
+    			<th>Nombre</th>
+    			<th>Precio</th>
+                <th></th>
+                <th></th>
+                <th></th>
+    		</tr>
+    	</thead>
+    	<tbody>    		
+        @foreach (var p in productos)
+        {
+        	<tr>
+            	<td>@p.Id_producto</td>
+            	<td>@p.Nombre</td>
+            	<td>@p.Precio</td>
+                <td><i class="bi bi-search text-success"></i></td>
+                <td><i class="bi bi-pencil-square text-warning"></i></td>
+                <td><i class="bi bi-trash3 text-danger"></i></td>
+            </tr>
+        }        	
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Producto>? productos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        productos = await Http.GetFromJsonAsync<List<Producto>>("api/Producto");
+    }
+}

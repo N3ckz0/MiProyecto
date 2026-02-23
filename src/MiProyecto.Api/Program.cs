@@ -1,9 +1,11 @@
 using MiProyecto.Aplicacion.Clientes;
+using MiProyecto.Aplicacion.Productos;
 using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IProductoService, ProductoService>();
 
 builder.Services.AddControllers();
 

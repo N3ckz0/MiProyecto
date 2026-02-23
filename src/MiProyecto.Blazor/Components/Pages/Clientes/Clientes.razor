@@ -1,0 +1,51 @@
+@page "/clientes"
+@inject HttpClient Http
+@using MiProyecto.Domain
+
+<h3>Clientes</h3>
+
+@if (clientes == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <table class="w-100 table">
+    	<thead>
+    		<tr>
+    			<th>ID</th>
+    			<th>Nombre</th>
+    			<th>RFC</th>
+    			<th>Correo</th>
+    			<th>Imagen</th>
+                <th></th>
+                <th></th>
+                <th></th>
+    		</tr>
+    	</thead>
+    	<tbody>    		
+        @foreach (var c in clientes)
+        {
+        	<tr>
+            	<td>@c.Id</td>
+            	<td>@c.Nombre</td>
+            	<td>@c.Nombre</td>
+            	<td>@c.Email</td>
+            	<td>@c.Image</td>
+                <td><i class="bi bi-search text-success"></i></td>
+                <td><i class="bi bi-pencil-square text-warning"></i></td>
+                <td><i class="bi bi-trash3 text-danger"></i></td>
+            </tr>
+        }        	
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Cliente>? clientes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientes = await Http.GetFromJsonAsync<List<Cliente>>("api/Cliente");
+    }
+}
