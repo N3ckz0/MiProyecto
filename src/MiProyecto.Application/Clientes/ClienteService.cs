@@ -1,41 +1,23 @@
-using MySqlConnector;
-using Dapper;
 using MiProyecto.Domain;
-using Microsoft.Extensions.Configuration;
 
-namespace MiProyecto.Aplicacion.Clientes;
-
-public interface IClienteService
-{
-    Task<IEnumerable<Cliente>> ObtenerTodos();
-    Task CrearCliente(Cliente cliente);
-}
+namespace MiProyecto.Application.Clientes;
 
 public class ClienteService : IClienteService
 {
-    private readonly string _connectionString;
+    private readonly IClienteRepository _repository;
 
-    public ClienteService(IConfiguration config)
+    public ClienteService(IClienteRepository repository)
     {
-        _connectionString = config.GetConnectionString("DefaultConnection")
-                            ?? throw new ArgumentNullException("DefaultConnection missing");
+        _repository = repository;
     }
 
     public async Task<IEnumerable<Cliente>> ObtenerTodos()
     {
-        using var conn = new MySqlConnection(_connectionString);
-        var clientes = await conn.QueryAsync<Cliente>("SELECT * FROM cliente");
-        var resultado = clientes
-        .Where(c => c.Id > 0)
-        .OrderBy(c => c.Id);
-        return resultado;
+        return await _repository.ObtenerTodos();
     }
 
     public async Task CrearCliente(Cliente cliente)
     {
-        using var conn = new MySqlConnection(_connectionString);
-        var sql = @"INSERT INTO Clientes (Nombre, Rfc, Email, Password, Image) 
-                    VALUES (@Nombre,@Rfc,@Email,@Password,@Image)";
-        await conn.ExecuteAsync(sql, cliente);
+        await _repository.CrearCliente(cliente);
     }
 }

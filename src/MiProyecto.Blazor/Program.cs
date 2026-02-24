@@ -1,11 +1,16 @@
 using MiProyecto.Blazor.Components;
+using MiProyecto.Application.Productos;
+using MiProyecto.Infrastructure.Productos;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddScoped<SaludoApiService>();
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("http://localhost:5289/")
+});
 
 builder.Services.AddScoped(sp => new HttpClient
 {

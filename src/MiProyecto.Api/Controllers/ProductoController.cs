@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using MiProyecto.Aplicacion.Productos;
+using MiProyecto.Application.Productos;
 using MiProyecto.Domain;
 
 namespace MiProyecto.Api.Controllers;

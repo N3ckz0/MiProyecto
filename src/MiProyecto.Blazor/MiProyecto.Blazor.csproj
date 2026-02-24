@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MiProyecto.Application\MiProyecto.Application.csproj" />
+    <ProjectReference Include="..\MiProyecto.Infrastructure\MiProyecto.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
