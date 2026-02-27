@@ -30,4 +30,8 @@ public class ProductoService : IProductoService
     {
         await _repo.CrearProducto(producto);
     }
+    public async Task EliminarProducto(int id)
+    {
+        await _repo.EliminarProducto(id);
+    }
 }

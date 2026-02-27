@@ -1,5 +1,6 @@
 @page "/productos"
 @inject HttpClient Http
+@inject IJSRuntime JS
 @using MiProyecto.Domain
 
 <nav aria-label="breadcrumb">
@@ -44,7 +45,7 @@ else
             	<td>@p.Precio</td>
                 <td><a href="/producto/@p.Id_producto"><i class="bi bi-search text-success fs-4"></i></a></td>
                 <td><a href="/producto/editar/@p.Id_producto"><i class="bi bi-pencil-square text-warning fs-4"></i></a></td>
-                <td><a href="#"><i class="bi bi-trash3 text-danger fs-4"></i></a></td>
+                <td><i class="bi bi-trash3 text-danger fs-4" @onclick="() => Eliminar(p.Id_producto)"></i></td>
             </tr>
         }        	
         </tbody>
@@ -57,5 +58,23 @@ else
     protected override async Task OnInitializedAsync()
     {
         productos = await Http.GetFromJsonAsync<List<Producto>>("api/Producto");
+    }
+
+    private async Task Eliminar(int id)
+    {
+        var confirmado = await JS.InvokeAsync<bool>(
+            "confirm", "¿Seguro que deseas eliminar este producto?");
+
+        if (!confirmado)
+            return;
+
+        var response = await Http.DeleteAsync(
+            $"http://localhost:5289/api/producto/{id}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            productos = await Http.GetFromJsonAsync<List<Producto>>(
+                "http://localhost:5289/api/producto");
+        }
     }
 }

@@ -51,4 +51,11 @@ public class ProductoController : ControllerBase
         return Ok(); // Solo confirma que se insertó
     }
 
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _ProductoService.EliminarProducto(id);
+        return NoContent();
+    }
+
 }

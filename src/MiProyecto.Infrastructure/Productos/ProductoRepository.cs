@@ -58,4 +58,13 @@ public class ProductoRepository : IProductoRepository
 
         await conn.ExecuteAsync(sql, producto);
     }
+
+    public async Task EliminarProducto(int id)
+    {
+        using var conn = new MySqlConnection(_connectionString);
+
+        var sql = "DELETE FROM productos WHERE id_producto = @Id";
+
+        await conn.ExecuteAsync(sql, new { Id = id });
+    }
 }
