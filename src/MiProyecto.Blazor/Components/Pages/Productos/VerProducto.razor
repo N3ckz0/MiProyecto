@@ -1,0 +1,41 @@
+@page "/producto/{Id:int}"
+@using MiProyecto.Domain
+@inject HttpClient Http
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="/productos">Productos</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Ver Producto</li>
+    </ol>
+</nav>
+
+<div class="d-flex align-items-center mb-4">
+    <h3>Detalle del Producto</h3>
+</div>
+
+@if (producto == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <div>
+        <p><strong>ID:</strong> @producto.Id_producto</p>
+        <p><strong>Nombre:</strong> @producto.Nombre</p>
+        <p><strong>Precio:</strong> @producto.Precio</p>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Producto? producto;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        producto = await Http.GetFromJsonAsync<Producto>(
+            $"api/Producto/{Id}");
+    }
+}

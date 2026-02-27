@@ -2,8 +2,21 @@
 @inject HttpClient Http
 @using MiProyecto.Domain
 
-<h3>Productos</h3>
-<a href="/producto_agregar">Agregar</a>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Productos</li>
+    </ol>
+</nav>
+
+<div class="d-flex align-items-center mb-4">
+    <h3 class="m-0">Productos</h3>
+    <a class="btn btn-primary ms-auto" href="/producto_agregar">Agregar</a>
+</div>
+
+
+
+
 
 @if (productos == null)
 {
@@ -11,7 +24,7 @@
 }
 else
 {
-    <table class="w-100 table">
+    <table class="w-100 table text-center">
     	<thead>
     		<tr>
     			<th>ID</th>
@@ -29,9 +42,9 @@ else
             	<td>@p.Id_producto</td>
             	<td>@p.Nombre</td>
             	<td>@p.Precio</td>
-                <td><i class="bi bi-search text-success"></i></td>
-                <td><i class="bi bi-pencil-square text-warning"></i></td>
-                <td><i class="bi bi-trash3 text-danger"></i></td>
+                <td><a href="/producto/@p.Id_producto"><i class="bi bi-search text-success fs-4"></i></a></td>
+                <td><a href="/producto/editar/@p.Id_producto"><i class="bi bi-pencil-square text-warning fs-4"></i></a></td>
+                <td><a href="#"><i class="bi bi-trash3 text-danger fs-4"></i></a></td>
             </tr>
         }        	
         </tbody>

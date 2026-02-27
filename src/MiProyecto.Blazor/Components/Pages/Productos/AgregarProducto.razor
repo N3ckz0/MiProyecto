@@ -3,7 +3,17 @@
 @using MiProyecto.Application.Productos
 @using MiProyecto.Domain
 
-<h3>Agregar Producto</h3>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="/productos">Productos</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Agregar Productos</li>
+    </ol>
+</nav>
+
+<div class="d-flex align-items-center mb-4">
+    <h3 class="m-0">Agregar Producto</h3>
+</div>
 
 @if (mensaje is not null)
 {

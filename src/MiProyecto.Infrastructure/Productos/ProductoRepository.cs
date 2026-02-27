@@ -28,6 +28,27 @@ public class ProductoRepository : IProductoRepository
             .OrderBy(p => p.Id_producto);
     }
 
+    public async Task<Producto?> ObtenerPorId(int id)
+    {
+        using var conn = new MySqlConnection(_connectionString);
+
+        var sql = "SELECT * FROM productos WHERE Id_producto = @Id";
+
+        return await conn.QueryFirstOrDefaultAsync<Producto>(sql, new { Id = id });
+    }
+
+    public async Task ActualizarProducto(Producto producto)
+    {
+        using var conn = new MySqlConnection(_connectionString);
+
+        var sql = @"UPDATE productos 
+                    SET nombre = @Nombre,
+                        precio = @Precio
+                    WHERE Id_producto = @Id_producto";
+
+        await conn.ExecuteAsync(sql, producto);
+    }
+
     public async Task CrearProducto(Producto producto)
     {
         using var conn = new MySqlConnection(_connectionString);

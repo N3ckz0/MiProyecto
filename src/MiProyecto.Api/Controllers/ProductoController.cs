@@ -22,6 +22,28 @@ public class ProductoController : ControllerBase
         return Ok(Productos);
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Get(int id)
+    {
+        var producto = await _ProductoService.ObtenerPorId(id);
+
+        if (producto == null)
+            return NotFound();
+
+        return Ok(producto);
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Put(int id, [FromBody] Producto producto)
+    {
+        if (id != producto.Id_producto)
+            return BadRequest();
+
+        await _ProductoService.ActualizarProducto(producto);
+
+        return NoContent();
+    }
+
     [HttpPost]
     public async Task<IActionResult> Post(Producto Producto)
     {

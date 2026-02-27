@@ -16,6 +16,16 @@ public class ProductoService : IProductoService
         return await _repo.ObtenerTodos();
     }
 
+    public async Task<Producto?> ObtenerPorId(int id)
+    {
+        return await _repo.ObtenerPorId(id);
+    }
+
+    public async Task ActualizarProducto(Producto producto)
+    {
+        await _repo.ActualizarProducto(producto);
+    }
+
     public async Task CrearProducto(Producto producto)
     {
         await _repo.CrearProducto(producto);
