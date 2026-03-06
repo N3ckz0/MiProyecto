@@ -14,13 +14,15 @@ public class ProductoOfflineService
 
     public async Task GuardarAsync(ProductoLocal producto)
     {
-            Console.WriteLine($"Guardando producto: {producto.Id_producto} - {producto.Nombre}");
-        await _db.AddRecord(new StoreRecord<ProductoLocal>
+        Console.WriteLine("ANTES de guardar");
+
+        await _db.UpdateRecord(new StoreRecord<ProductoLocal>
         {
             Storename = "productos",
             Data = producto
         });
-            Console.WriteLine("Producto guardado");
+
+        Console.WriteLine("DESPUÉS de guardar");
     }
 
     public async Task<List<ProductoLocal>> ObtenerTodosAsync()
