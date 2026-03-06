@@ -1,0 +1,127 @@
+@page "/productos"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@using MiProyecto.Domain
+@using MiProyecto.Web.Services
+@inject ProductoOfflineService ProductoOfflineService
+
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Productos</li>
+    </ol>
+</nav>
+
+<div class="d-flex align-items-center mb-4">
+    <h3 class="m-0">Productos</h3>
+    <a class="btn btn-primary ms-auto" href="/producto_agregar">Agregar</a>
+</div>
+
+
+
+
+
+@if (productos == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <button @onclick="() => ProbarGuardar()">Probar Guardar</button>
+    <table class="w-100 table text-center">
+    	<thead>
+    		<tr>
+    			<th>ID</th>
+    			<th>Nombre</th>
+    			<th>Precio</th>
+                <th></th>
+                <th></th>
+                <th></th>
+    		</tr>
+    	</thead>
+    	<tbody>    		
+        @foreach (var p in productos)
+        {
+        	<tr>
+            	<td>@p.Id_producto</td>
+            	<td>@p.Nombre</td>
+            	<td>@p.Precio</td>
+                <td><a href="/producto/@p.Id_producto"><i class="bi bi-search text-success fs-4"></i></a></td>
+                <td><a href="/producto/editar/@p.Id_producto"><i class="bi bi-pencil-square text-warning fs-4"></i></a></td>
+                <td><i class="bi bi-trash3 text-danger fs-4" @onclick="() => Eliminar(p.Id_producto)"></i></td>
+            </tr>
+        }        	
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Producto>? productos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        productos = await Http.GetFromJsonAsync<List<Producto>>("api/Producto");
+    }
+
+    private async Task Eliminar(int id)
+    {
+        var confirmado = await JS.InvokeAsync<bool>(
+            "confirm", "¿Seguro que deseas eliminar este producto?");
+
+        if (!confirmado)
+            return;
+
+        var response = await Http.DeleteAsync($"api/producto/{id}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            productos = await Http.GetFromJsonAsync<List<Producto>>("api/producto");
+        }
+    }
+
+    private async Task ProbarGuardar()
+    {
+        try
+        {
+            Console.WriteLine("==== INICIO ProbarGuardar ====");
+
+            var producto = new ProductoLocal
+            {
+                Id_producto = new Random().Next(1, 100000),
+                Nombre = "Juguete",
+                Precio = 100,
+                IsSynced = false,
+                LastModified = DateTime.UtcNow
+            };
+
+            await ProductoOfflineService.GuardarAsync(producto);
+
+            Console.WriteLine($"Producto creado:");
+            Console.WriteLine($"Id_producto: {producto.Id_producto}");
+            Console.WriteLine($"Nombre: {producto.Nombre}");
+            Console.WriteLine($"Precio: {producto.Precio}");
+            Console.WriteLine($"IsSynced: {producto.IsSynced}");
+            Console.WriteLine($"LastModified: {producto.LastModified}");
+
+            Console.WriteLine("Llamando a GuardarAsync...");
+
+            var productos = await ProductoOfflineService.ObtenerTodosAsync();
+
+            Console.WriteLine($"Total productos: {productos.Count}");
+
+            foreach (var p in productos)
+            {
+                Console.WriteLine($"{p.Id_producto} - {p.Nombre} - {p.Precio}");
+            }
+
+            Console.WriteLine("==== FIN ProbarGuardar ====");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ ERROR EN ProbarGuardar:");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
+        }
+    }
+}
