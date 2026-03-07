@@ -14,11 +14,12 @@ builder.Services.AddScoped(sp =>
     });
 
 builder.Services.AddScoped<ProductoOfflineService>();
+builder.Services.AddScoped<NetworkService>();
 
 builder.Services.AddIndexedDB(dbStore =>
 {
     dbStore.DbName = "MiProyectoDB";
-    dbStore.Version = 4;
+    dbStore.Version = 1;
 
     dbStore.Stores.Add(new StoreSchema
     {
@@ -27,7 +28,7 @@ builder.Services.AddIndexedDB(dbStore =>
         {
             Name = "Id_producto",
             KeyPath = "Id_producto",
-            Auto = false
+            Auto = true
         }
     });
 });

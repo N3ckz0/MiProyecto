@@ -3,7 +3,7 @@
 @inject IJSRuntime JS
 @using MiProyecto.Domain
 @using MiProyecto.Web.Services
-@inject ProductoOfflineService ProductoOfflineService
+@inject ProductoOfflineService ProductoOffline
 
 
 <nav aria-label="breadcrumb">
@@ -28,7 +28,6 @@
 }
 else
 {
-    <button @onclick="() => ProbarGuardar()">Probar Guardar</button>
     <table class="w-100 table text-center">
     	<thead>
     		<tr>
@@ -61,7 +60,46 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        productos = await Http.GetFromJsonAsync<List<Producto>>("api/Producto");
+        // 1️⃣ Cargar productos desde IndexedDB
+        var offline = await ProductoOffline.ObtenerTodosAsync();
+
+        if (offline != null && offline.Count > 0)
+        {
+            productos = offline.Select(p => new Producto
+            {
+                Id_producto = p.Id_producto,
+                Nombre = p.Nombre,
+                Precio = p.Precio
+            }).ToList();
+        }
+
+        try
+        {
+            // 2️⃣ Intentar obtener datos desde la API
+            var apiProductos = await Http.GetFromJsonAsync<List<Producto>>("api/producto");
+
+            if (apiProductos != null)
+            {
+                productos = apiProductos;
+
+                // 3️⃣ Guardar en IndexedDB
+                await ProductoOffline.LimpiarAsync();
+
+                foreach (var p in apiProductos)
+                {
+                    await ProductoOffline.GuardarAsync(new ProductoLocal
+                    {
+                        Id_producto = p.Id_producto,
+                        Nombre = p.Nombre,
+                        Precio = p.Precio
+                    });
+                }
+            }
+        }
+        catch
+        {
+            // 4️⃣ Si falla la API (sin internet), usar los datos offline
+        }
     }
 
     private async Task Eliminar(int id)
@@ -76,52 +114,21 @@ else
 
         if (response.IsSuccessStatusCode)
         {
+            // actualizar lista
             productos = await Http.GetFromJsonAsync<List<Producto>>("api/producto");
-        }
-    }
 
-    private async Task ProbarGuardar()
-    {
-        try
-        {
-            Console.WriteLine("==== INICIO ProbarGuardar ====");
-
-            var producto = new ProductoLocal
-            {
-                Id_producto = new Random().Next(1, 100000),
-                Nombre = "Juguete",
-                Precio = 100,
-                IsSynced = false,
-                LastModified = DateTime.UtcNow
-            };
-
-            await ProductoOfflineService.GuardarAsync(producto);
-
-            Console.WriteLine($"Producto creado:");
-            Console.WriteLine($"Id_producto: {producto.Id_producto}");
-            Console.WriteLine($"Nombre: {producto.Nombre}");
-            Console.WriteLine($"Precio: {producto.Precio}");
-            Console.WriteLine($"IsSynced: {producto.IsSynced}");
-            Console.WriteLine($"LastModified: {producto.LastModified}");
-
-            Console.WriteLine("Llamando a GuardarAsync...");
-
-            var productos = await ProductoOfflineService.ObtenerTodosAsync();
-
-            Console.WriteLine($"Total productos: {productos.Count}");
+            // actualizar IndexedDB
+            await ProductoOffline.LimpiarAsync();
 
             foreach (var p in productos)
             {
-                Console.WriteLine($"{p.Id_producto} - {p.Nombre} - {p.Precio}");
+                await ProductoOffline.GuardarAsync(new ProductoLocal
+                {
+                    Id_producto = p.Id_producto,
+                    Nombre = p.Nombre,
+                    Precio = p.Precio
+                });
             }
-
-            Console.WriteLine("==== FIN ProbarGuardar ====");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("❌ ERROR EN ProbarGuardar:");
-            Console.WriteLine(ex.Message);
-            Console.WriteLine(ex.StackTrace);
         }
     }
 }

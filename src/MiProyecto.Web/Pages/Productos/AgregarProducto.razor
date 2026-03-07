@@ -2,6 +2,9 @@
 @inject HttpClient Http
 @using MiProyecto.Application.Productos
 @using MiProyecto.Domain
+@inject ProductoOfflineService ProductoOfflineService
+@inject NetworkService NetworkService
+@using MiProyecto.Web.Models
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -48,22 +51,44 @@
 
     private async Task Guardar()
     {
-        var response = await Http.PostAsJsonAsync("api/producto", producto);
+        bool online = await NetworkService.IsOnline();
 
-        if (response.IsSuccessStatusCode)
+        if (online)
         {
-            mensaje = "Producto guardado correctamente";
-            productoGuardado = true;
-            producto = new();
-            await InvokeAsync(StateHasChanged);
-            await Task.Delay(2000);
-            mensaje = null;
-            await InvokeAsync(StateHasChanged);
+            var response = await Http.PostAsJsonAsync("api/producto", producto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                mensaje = "Producto guardado correctamente";
+                productoGuardado = true;
+                producto = new();
+            }
+            else
+            {
+                mensaje = "Error al guardar el producto";
+                productoGuardado = false;
+            }
         }
         else
         {
-            mensaje = "Error al guardar el producto";
-            productoGuardado = false;
+            var productoLocal = new ProductoLocal
+            {
+                Nombre = producto.Nombre,
+                Precio = producto.Precio,
+                IsSynced = false,
+                LastModified = DateTime.UtcNow
+            };
+
+            await ProductoOfflineService.GuardarAsync(productoLocal);
+
+            mensaje = "Producto guardado offline (se sincronizará después)";
+            productoGuardado = true;
+            producto = new();
         }
+
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(2000);
+        mensaje = null;
+        await InvokeAsync(StateHasChanged);
     }
 }

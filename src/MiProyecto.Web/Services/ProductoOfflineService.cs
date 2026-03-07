@@ -14,19 +14,33 @@ public class ProductoOfflineService
 
     public async Task GuardarAsync(ProductoLocal producto)
     {
-        Console.WriteLine("ANTES de guardar");
-
         await _db.UpdateRecord(new StoreRecord<ProductoLocal>
         {
             Storename = "productos",
             Data = producto
         });
+    }
 
-        Console.WriteLine("DESPUÉS de guardar");
+    public async Task GuardarListaAsync(List<ProductoLocal> productos)
+    {
+        foreach (var producto in productos)
+        {
+            await GuardarAsync(producto);
+        }
     }
 
     public async Task<List<ProductoLocal>> ObtenerTodosAsync()
     {
         return await _db.GetRecords<ProductoLocal>("productos");
+    }
+
+    public async Task EliminarAsync(int id)
+    {
+        await _db.DeleteRecord("productos", id);
+    }
+
+    public async Task LimpiarAsync()
+    {
+        await _db.ClearStore("productos");
     }
 }
