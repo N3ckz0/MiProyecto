@@ -4,7 +4,13 @@
 @using MiProyecto.Domain
 @using MiProyecto.Web.Services
 @inject ProductoOfflineService ProductoOffline
+@inject NetworkService Network
+@using System.Text.Json
+@inject CambioProductoService CambioProductoService
+@inject SincronizacionService Sync
 
+//DEBUG
+@inject IJSRuntime JS
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -16,7 +22,17 @@
 <div class="d-flex align-items-center mb-4">
     <h3 class="m-0">Productos</h3>
     <a class="btn btn-primary ms-auto" href="/producto_agregar">Agregar</a>
+@if (tieneInternet)
+{
+    <button class="btn" @onclick="Sincronizar" disabled="@sincronizando">
+        <i class="bi bi-arrow-repeat fs-4"></i>
+    </button>
+}
 </div>
+
+<button class="btn btn-secondary" @onclick="MostrarOfflineEnConsola">
+    Mostrar offline en consola
+</button>
 
 
 
@@ -34,6 +50,7 @@ else
     			<th>ID</th>
     			<th>Nombre</th>
     			<th>Precio</th>
+                <th>Estado</th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -46,8 +63,13 @@ else
             	<td>@p.Id_producto</td>
             	<td>@p.Nombre</td>
             	<td>@p.Precio</td>
-                <td><a href="/producto/@p.Id_producto"><i class="bi bi-search text-success fs-4"></i></a></td>
-                <td><a href="/producto/editar/@p.Id_producto"><i class="bi bi-pencil-square text-warning fs-4"></i></a></td>
+                <td>
+                    <span class="badge @(p.IsOffline ? "bg-warning" : "bg-success")">
+                        @(p.IsOffline ? "Offline" : "Online")
+                    </span>
+                </td>
+                <td><a href="/producto/@p.Id_producto"><i class="bi bi-search text-dark fs-4"></i></a></td>
+                <td><a href="/producto/editar/@p.Id_producto"><i class="bi bi-pencil-square text-dark fs-4"></i></a></td>
                 <td><i class="bi bi-trash3 text-danger fs-4" @onclick="() => Eliminar(p.Id_producto)"></i></td>
             </tr>
         }        	
@@ -56,79 +78,200 @@ else
 }
 
 @code {
-    private List<Producto>? productos;
+    private List<Producto> productos = new();
+    private bool sincronizando = false;
+    private bool tieneInternet = false;
 
     protected override async Task OnInitializedAsync()
     {
-        // 1️⃣ Cargar productos desde IndexedDB
-        var offline = await ProductoOffline.ObtenerTodosAsync();
+        // Actualizar el estado de la conexión
+        Network.OnOnlineEvent -= Conectado;
+        Network.OnOnlineEvent += Conectado;
 
-        if (offline != null && offline.Count > 0)
-        {
-            productos = offline.Select(p => new Producto
-            {
-                Id_producto = p.Id_producto,
-                Nombre = p.Nombre,
-                Precio = p.Precio
-            }).ToList();
-        }
+        Network.OnOfflineEvent -= Desconectado;
+        Network.OnOfflineEvent += Desconectado;
+
+        await Network.RegisterConnectionEvents();
+
+        tieneInternet = await Network.IsOnline();
+
+        await CargarProductos();
+    }
+
+    private async Task Conectado()
+    {
+        tieneInternet = true;
+        StateHasChanged();
+    }
+
+    private async Task Desconectado()
+    {
+        tieneInternet = false;
+        StateHasChanged();
+    }
+
+    private async Task Sincronizar()
+    {
+        if (sincronizando)
+            return;
+
+        sincronizando = true;
 
         try
         {
-            // 2️⃣ Intentar obtener datos desde la API
-            var apiProductos = await Http.GetFromJsonAsync<List<Producto>>("api/producto");
+            await Sync.SincronizarProductos();
+            await CargarProductos();
+        }
+        finally
+        {
+            sincronizando = false;
+            StateHasChanged();
+        }
+    }
 
-            if (apiProductos != null)
+    private void ReemplazarOffline(List<Producto> sincronizados)
+    {
+        foreach (var pOnline in sincronizados)
+        {
+            // Eliminar cualquier producto offline temporal con el mismo nombre
+            productos.RemoveAll(p => p.IsOffline && p.Nombre == pOnline.Nombre);
+
+            // Reemplazar si ya existe producto con Id real
+            var index = productos.FindIndex(p => p.Id_producto == pOnline.Id_producto);
+            if (index >= 0)
             {
-                productos = apiProductos;
+                productos[index] = pOnline;
+            }
+            else
+            {
+                productos.Add(pOnline);
+            }
+        }
+    }
 
-                // 3️⃣ Guardar en IndexedDB
-                await ProductoOffline.LimpiarAsync();
+    private async Task CargarProductos()
+    {
+        var productosTemp = new Dictionary<int, Producto>();
+        var idsAgregados = new HashSet<int>();
 
-                foreach (var p in apiProductos)
+        // 1️⃣ Agregar productos offline no sincronizados
+        var offline = await ProductoOffline.ObtenerTodosAsync();
+        if (offline != null)
+        {
+            foreach (var p in offline)
+            {
+                if (!p.IsSynced && !idsAgregados.Contains(p.Id_producto))
                 {
-                    await ProductoOffline.GuardarAsync(new ProductoLocal
+                    productosTemp[p.Id_producto] = new Producto
                     {
                         Id_producto = p.Id_producto,
                         Nombre = p.Nombre,
-                        Precio = p.Precio
-                    });
+                        Precio = p.Precio,
+                        IsOffline = true
+                    };
+                    idsAgregados.Add(p.Id_producto);
+                }
+            }
+        }
+
+        // 2️⃣ Agregar productos del API
+        try
+        {
+            var apiProductos = await Http.GetFromJsonAsync<List<Producto>>("api/producto");
+            if (apiProductos != null)
+            {
+                foreach (var p in apiProductos)
+                {
+                    // Si ya existe producto temporal offline con el mismo Id temporal
+                    var tempOffline = offline.FirstOrDefault(x => x.Id_producto == p.Id_producto || x.Nombre == p.Nombre);
+
+                    if (tempOffline != null)
+                    {
+                        // reemplazar offline por online
+                        productosTemp[p.Id_producto] = new Producto
+                        {
+                            Id_producto = p.Id_producto,
+                            Nombre = p.Nombre,
+                            Precio = p.Precio,
+                            IsOffline = false
+                        };
+                    }
+                    else if (!productosTemp.ContainsKey(p.Id_producto))
+                    {
+                        // agregar online normal
+                        productosTemp[p.Id_producto] = new Producto
+                        {
+                            Id_producto = p.Id_producto,
+                            Nombre = p.Nombre,
+                            Precio = p.Precio,
+                            IsOffline = false
+                        };
+                    }
+
+                    // Guardar en IndexedDB solo si no existe
+                    if (!offline.Any(x => x.Id_producto == p.Id_producto))
+                    {
+                        await ProductoOffline.GuardoDeApiAsync(new ProductoLocal
+                        {
+                            Id_producto = p.Id_producto,
+                            Nombre = p.Nombre,
+                            Precio = p.Precio,
+                            IsSynced = true,
+                            LastModified = DateTime.UtcNow
+                        });
+                    }
                 }
             }
         }
         catch
         {
-            // 4️⃣ Si falla la API (sin internet), usar los datos offline
+            // No hay internet → mostrar solo los productos offline
         }
+
+        // 3️⃣ Reemplazar la lista en memoria
+        productos = productosTemp.Values.ToList();
+        StateHasChanged(); // actualizar UI
     }
 
-    private async Task Eliminar(int id)
+    private async Task Eliminar(int? id)
     {
-        var confirmado = await JS.InvokeAsync<bool>(
-            "confirm", "¿Seguro que deseas eliminar este producto?");
+        if (!id.HasValue)
+            return;
 
+        var confirmado = await JS.InvokeAsync<bool>("confirm", $"¿Seguro que deseas eliminar el producto {id.Value}");
         if (!confirmado)
             return;
 
-        var response = await Http.DeleteAsync($"api/producto/{id}");
+        productos.RemoveAll(p => p.Id_producto == id);
 
-        if (response.IsSuccessStatusCode)
+        try
         {
-            // actualizar lista
-            productos = await Http.GetFromJsonAsync<List<Producto>>("api/producto");
-
-            // actualizar IndexedDB
-            await ProductoOffline.LimpiarAsync();
-
-            foreach (var p in productos)
-            {
-                await ProductoOffline.GuardarAsync(new ProductoLocal
-                {
-                    Id_producto = p.Id_producto,
-                    Nombre = p.Nombre,
-                    Precio = p.Precio
-                });
-            }
+            await Http.DeleteAsync($"api/producto/{id}");
         }
+        catch
+        {
+            // ignoramos error si está offline
+        }
+
+        // SIEMPRE registrar cambio offline
+        await ProductoOffline.EliminarAsync(id.Value);
     }
+
+    //DEBUG
+    private async Task MostrarOfflineEnConsola()
+    {
+        // Mostrar productos offline
+        var offline = await ProductoOffline.ObtenerTodosAsync();
+        var json = JsonSerializer.Serialize(offline, new JsonSerializerOptions { WriteIndented = true });
+        await JS.InvokeVoidAsync("console.log", "Productos offline:", json);
+
+        // Mostrar TODOS los cambios, sin filtrar por Sincronizado
+        var cambios = await CambioProductoService.ObtenerTodos();
+        var json_mod = JsonSerializer.Serialize(cambios, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+        await JS.InvokeVoidAsync("console.log", "Todos los cambios:", json_mod);
+    }
+    
 }

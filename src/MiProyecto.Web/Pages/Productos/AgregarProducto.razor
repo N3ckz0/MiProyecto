@@ -48,7 +48,7 @@
     Producto producto = new();
     bool productoGuardado = false;
     string? mensaje;
-
+    [Parameter] public EventCallback<Producto> OnProductoAgregado { get; set; }
     private async Task Guardar()
     {
         bool online = await NetworkService.IsOnline();
@@ -56,12 +56,17 @@
         if (online)
         {
             var response = await Http.PostAsJsonAsync("api/producto", producto);
-
             if (response.IsSuccessStatusCode)
             {
-                mensaje = "Producto guardado correctamente";
-                productoGuardado = true;
-                producto = new();
+                var productoServidor = await response.Content.ReadFromJsonAsync<Producto>();
+                if (productoServidor != null)
+                {
+                    mensaje = "Producto guardado correctamente";
+                    productoGuardado = true;
+                    await OnProductoAgregado.InvokeAsync(productoServidor);
+                    producto = new();
+                    StateHasChanged();
+                }
             }
             else
             {
@@ -76,7 +81,8 @@
                 Nombre = producto.Nombre,
                 Precio = producto.Precio,
                 IsSynced = false,
-                LastModified = DateTime.UtcNow
+                LastModified = DateTime.UtcNow,
+                Id_producto = -(int)(DateTime.UtcNow.Ticks % int.MaxValue)
             };
 
             await ProductoOfflineService.GuardarAsync(productoLocal);

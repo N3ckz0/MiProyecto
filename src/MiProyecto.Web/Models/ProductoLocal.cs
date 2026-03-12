@@ -18,4 +18,7 @@ public class ProductoLocal
 
     [JsonPropertyName("LastModified")]
     public DateTime LastModified { get; set; }
+
+    [JsonPropertyName("IsOffline")]
+    public bool IsOffline { get; set; } = false;
 }

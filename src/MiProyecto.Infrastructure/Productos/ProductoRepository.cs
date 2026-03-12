@@ -49,14 +49,16 @@ public class ProductoRepository : IProductoRepository
         await conn.ExecuteAsync(sql, producto);
     }
 
-    public async Task CrearProducto(Producto producto)
+    public async Task<Producto> CrearProducto(Producto producto)
     {
         using var conn = new MySqlConnection(_connectionString);
 
         var sql = @"INSERT INTO productos (nombre, precio) 
                     VALUES (@Nombre, @Precio)";
 
-        await conn.ExecuteAsync(sql, producto);
+        var id = await conn.ExecuteScalarAsync<int>(sql, producto);
+        producto.Id_producto = id;
+        return producto;
     }
 
     public async Task EliminarProducto(int id)
@@ -66,5 +68,17 @@ public class ProductoRepository : IProductoRepository
         var sql = "DELETE FROM productos WHERE id_producto = @Id";
 
         await conn.ExecuteAsync(sql, new { Id = id });
+    }
+    public async Task CrearProductosLoteAsync(List<Producto> productos)
+    {
+        using var conn = new MySqlConnection(_connectionString);
+
+        var sql = @"INSERT INTO productos (nombre, precio) VALUES (@Nombre, @Precio);";
+
+        // Itera cada producto y ejecuta el insert
+        foreach (var producto in productos)
+        {
+            await conn.ExecuteAsync(sql, producto);
+        }
     }
 }

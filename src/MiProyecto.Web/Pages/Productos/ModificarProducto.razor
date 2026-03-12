@@ -2,6 +2,9 @@
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @using MiProyecto.Domain
+@inject ProductoOfflineService ProductoOffline
+@inject NetworkService Network
+@using MiProyecto.Web.Models
 
 <h3>Editar Producto</h3>
 
@@ -38,22 +41,58 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        producto = await Http.GetFromJsonAsync<Producto>(
-            $"api/producto/{Id}");
+        if (await Network.IsOnline())
+        {
+            producto = await Http.GetFromJsonAsync<Producto>(
+                $"api/producto/{Id}");
+        }
+        else
+        {
+            var productos = await ProductoOffline.ObtenerTodosAsync();
+
+            var local = productos.FirstOrDefault(p => p.Id_producto == Id);
+
+            if (local != null)
+            {
+                producto = new Producto
+                {
+                    Id_producto = local.Id_producto,
+                    Nombre = local.Nombre,
+                    Precio = local.Precio
+                };
+            }
+        }
     }
 
     private async Task Guardar()
-	{
-	    producto.Id_producto = Id;
+    {
+        if (producto == null)
+            return;
+        producto.Id_producto = Id;
+        if (await Network.IsOnline())
+        {
+            var response = await Http.PutAsJsonAsync($"api/producto/{Id}", producto);
 
-	    var response = await Http.PutAsJsonAsync(
-	        $"http://localhost:5289/api/producto/{Id}", producto);
+            if (response.IsSuccessStatusCode)
+                Navigation.NavigateTo("/productos");
+        }
+        else
+        {
+            var productoLocal = new ProductoLocal
+            {
+                Id_producto = producto.Id_producto,
+                Nombre = producto.Nombre,
+                Precio = producto.Precio,
+                IsSynced = false,
+                IsOffline = true,
+                LastModified = DateTime.UtcNow
+            };
 
-	    Console.WriteLine(response.StatusCode);
+            await ProductoOffline.ModificarAsync(productoLocal);
 
-	    if (response.IsSuccessStatusCode)
-	        Navigation.NavigateTo("/productos");
-	}
+            Navigation.NavigateTo("/productos");
+        }
+    }
 
     private void Volver()
     {
