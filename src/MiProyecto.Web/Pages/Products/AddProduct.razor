@@ -1,0 +1,70 @@
+@page "/producto_agregar"
+@inject HttpClient Http
+@using MiProyecto.Domain
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="/productos">Productos</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Agregar Productos</li>
+    </ol>
+</nav>
+
+<div class="d-flex align-items-center mb-4">
+    <h3 class="m-0">Agregar Producto</h3>
+</div>
+
+@if (mensaje is not null)
+{
+    <div class="alert @(productoGuardado ? "alert-success" : "alert-danger")">
+        @mensaje
+    </div>
+}
+
+<EditForm Model="producto" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Nombre</label>
+        <InputText class="form-control" @bind-Value="producto.Nombre" />
+    </div>
+
+    <div class="mb-3">
+        <label>Precio</label>
+        <InputNumber class="form-control" @bind-Value="producto.Precio" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Guardar
+    </button>
+</EditForm>
+
+@code{
+	Producto producto = new();
+	bool productoGuardado = false;
+	string? mensaje;
+	private async Task Guardar()
+	{
+		var response = await Http.PostAsJsonAsync("api/producto", producto);
+		if (response.IsSuccessStatusCode)
+		{
+			var productoServidor = await response.Content.ReadFromJsonAsync<Producto>();
+			if (productoServidor != null)
+			{
+				mensaje = "Producto guardado correctamente";
+				productoGuardado = true;
+				StateHasChanged();
+			}
+		}
+		else
+		{
+			mensaje = "Error al guardar el producto";
+			productoGuardado = false;
+		}
+		await InvokeAsync(StateHasChanged);
+        await Task.Delay(2000);
+        mensaje = null;
+        await InvokeAsync(StateHasChanged);
+	}
+}

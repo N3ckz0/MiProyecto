@@ -26,9 +26,10 @@ public class ProductoService : IProductoService
         await _repo.ActualizarProducto(producto);
     }
 
-    public async Task CrearProducto(Producto producto)
+    public async Task<Producto> CrearProducto(Producto producto)
     {
-        await _repo.CrearProducto(producto);
+        producto = await _repo.CrearProducto(producto);
+        return producto;
     }
     public async Task EliminarProducto(int id)
     {

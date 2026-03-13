@@ -47,8 +47,8 @@ public class ProductoController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Post(Producto Producto)
     {
-        await _ProductoService.CrearProducto(Producto);
-        return Ok(); // Solo confirma que se insertó
+        var new_product = await _ProductoService.CrearProducto(Producto);
+        return Ok(new_product); // Solo confirma que se insertó
     }
 
     [HttpDelete("{id:int}")]

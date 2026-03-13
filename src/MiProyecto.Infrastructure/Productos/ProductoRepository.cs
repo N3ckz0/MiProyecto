@@ -49,14 +49,16 @@ public class ProductoRepository : IProductoRepository
         await conn.ExecuteAsync(sql, producto);
     }
 
-    public async Task CrearProducto(Producto producto)
+    public async Task<Producto> CrearProducto(Producto producto)
     {
         using var conn = new MySqlConnection(_connectionString);
 
         var sql = @"INSERT INTO productos (nombre, precio) 
                     VALUES (@Nombre, @Precio)";
 
-        await conn.ExecuteAsync(sql, producto);
+        var id = await conn.ExecuteAsync(sql, producto);
+        producto.Id_producto = id;
+        return producto;
     }
 
     public async Task EliminarProducto(int id)

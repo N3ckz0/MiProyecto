@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MiProyecto.Application\MiProyecto.Application.csproj" />
     <ProjectReference Include="..\MiProyecto.Infrastructure\MiProyecto.Infrastructure.csproj" />
+    <ProjectReference Include="..\MiProyecto.Domain\MiProyecto.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
