@@ -1,8 +1,5 @@
-using MiProyecto.Application.Clientes;
-using MiProyecto.Infrastructure.Clientes;
-
-using MiProyecto.Application.Productos;
-using MiProyecto.Infrastructure.Productos;
+using MiProyecto.Application.Interfaces;
+using MiProyecto.Infrastructure.Repositories;
 
 using Microsoft.AspNetCore.Builder;
 

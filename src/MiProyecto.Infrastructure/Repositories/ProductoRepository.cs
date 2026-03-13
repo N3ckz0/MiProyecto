@@ -1,10 +1,10 @@
 using MySqlConnector;
 using Dapper;
-using MiProyecto.Domain;
-using MiProyecto.Application.Productos;
+using MiProyecto.Domain.Entities;
+using MiProyecto.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 
-namespace MiProyecto.Infrastructure.Productos;
+namespace MiProyecto.Infrastructure.Repositories;
 
 public class ProductoRepository : IProductoRepository
 {
@@ -20,12 +20,9 @@ public class ProductoRepository : IProductoRepository
     {
         using var conn = new MySqlConnection(_connectionString);
 
-        var productos = await conn.QueryAsync<Producto>(
-            "SELECT * FROM productos");
+        var productos = await conn.QueryAsync<Producto>("SELECT * FROM productos WHERE Id_producto > 0 ORDER BY Id_producto");
 
-        return productos
-            .Where(p => p.Id_producto > 0)
-            .OrderBy(p => p.Id_producto);
+        return productos;
     }
 
     public async Task<Producto?> ObtenerPorId(int id)
@@ -56,7 +53,7 @@ public class ProductoRepository : IProductoRepository
         var sql = @"INSERT INTO productos (nombre, precio) 
                     VALUES (@Nombre, @Precio)";
 
-        var id = await conn.ExecuteAsync(sql, producto);
+        var id = await conn.ExecuteScalarAsync<int>(sql, producto);
         producto.Id_producto = id;
         return producto;
     }

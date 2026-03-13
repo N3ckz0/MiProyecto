@@ -1,4 +1,4 @@
-namespace MiProyecto.Domain;
+namespace MiProyecto.Domain.Entities;
 
 public class Cliente
 {

@@ -1,6 +1,6 @@
-using MiProyecto.Domain;
+using MiProyecto.Domain.Entities;
 
-namespace MiProyecto.Application.Productos;
+namespace MiProyecto.Application.Interfaces;
 
 public class ProductoService : IProductoService
 {

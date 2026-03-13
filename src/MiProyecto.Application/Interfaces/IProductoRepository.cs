@@ -1,8 +1,8 @@
-using MiProyecto.Domain;
+using MiProyecto.Domain.Entities;
 
-namespace MiProyecto.Application.Productos;
+namespace MiProyecto.Application.Interfaces;
 
-public interface IProductoService
+public interface IProductoRepository
 {
     Task<IEnumerable<Producto>> ObtenerTodos();
     Task<Producto?> ObtenerPorId(int id);

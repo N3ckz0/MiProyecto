@@ -1,10 +1,10 @@
 using MySqlConnector;
 using Dapper;
-using MiProyecto.Domain;
-using MiProyecto.Application.Clientes;
+using MiProyecto.Domain.Entities;
+using MiProyecto.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 
-namespace MiProyecto.Infrastructure.Clientes;
+namespace MiProyecto.Infrastructure.Repositories;
 
 public class ClienteRepository : IClienteRepository
 {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using MiProyecto.Application.Clientes;
-using MiProyecto.Domain;
+using MiProyecto.Application.Interfaces;
+using MiProyecto.Domain.Entities;
 
 namespace MiProyecto.Api.Controllers;
 

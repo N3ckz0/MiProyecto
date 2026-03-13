@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using MiProyecto.Domain;
+using MiProyecto.Domain.Entities;
 
 namespace MiProyecto.Infrastructure.Data;
 

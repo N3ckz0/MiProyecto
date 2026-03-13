@@ -1,6 +1,6 @@
-using MiProyecto.Domain;
+using MiProyecto.Domain.Entities;
 
-namespace MiProyecto.Application.Clientes;
+namespace MiProyecto.Application.Interfaces;
 
 public interface IClienteRepository
 {
