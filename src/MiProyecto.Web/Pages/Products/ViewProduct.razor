@@ -1,6 +1,6 @@
 @page "/producto/{Id:int}"
+@inject ProductoService ProductoService
 @using MiProyecto.Domain.Entities
-@inject HttpClient Http
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -35,7 +35,6 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        producto = await Http.GetFromJsonAsync<Producto>(
-            $"api/Producto/{Id}");
+        producto = await ProductoService.GetProductoByIdAsync(Id);
     }
 }

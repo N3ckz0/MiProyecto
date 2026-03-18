@@ -1,6 +1,7 @@
 @page "/productos"
-@inject HttpClient Http
 @inject IJSRuntime JS
+@inject NetworkService NetworkService
+@inject ProductoService ProductoService
 @using MiProyecto.Domain.Entities
 
 <nav aria-label="breadcrumb">
@@ -14,6 +15,8 @@
     <a class="btn btn-primary ms-auto" href="/producto_agregar">Agregar</a>
     <button class="btn"><i class="bi bi-arrow-repeat fs-4"></i></button>
 </div>
+
+<p>@(isOnline ? "🟢 Online" : "🔴 Offline")</p>
 
 @if (productos == null)
 {
@@ -50,10 +53,27 @@ else
 
 @code{
 	private List<Producto>? productos;
+    private bool isOnline;
 
 	protected override async Task OnInitializedAsync()
     {
-        productos = await Http.GetFromJsonAsync<List<Producto>>("api/producto");
+        NetworkService.OnStatusChanged += HandleStatusChange;
+        await NetworkService.InitializeAsync();
+        isOnline = await NetworkService.IsOnline();
+
+        if( isOnline ){
+            productos = await ProductoService.GetProductosAsync();
+        }
+        else
+        {
+            productos = await ProductoService.GetProductosAsync();
+        }
+    }
+
+    private void HandleStatusChange(bool online)
+    {
+        isOnline = online;
+        StateHasChanged(); // Refresca la UI
     }
 
     private async Task Eliminar(int id)
@@ -62,11 +82,18 @@ else
 
         if (!confirmado) return;
 
-        var response = await Http.DeleteAsync($"api/producto/{id}");
+        var ok = await ProductoService.EliminarProductoAsync(id);
 
-        if (response.IsSuccessStatusCode)
+        if (ok)
         {
-            productos = await Http.GetFromJsonAsync<List<Producto>>("api/producto");
+            productos = await ProductoService.GetProductosAsync();
         }
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        NetworkService.OnStatusChanged -= HandleStatusChange;
+        await NetworkService.DisposeAsync();
+    }
+
 }

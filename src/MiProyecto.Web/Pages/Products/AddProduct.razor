@@ -1,5 +1,6 @@
 @page "/producto_agregar"
-@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ProductoService ProductoService
 @using MiProyecto.Domain.Entities
 
 <nav aria-label="breadcrumb">
@@ -40,32 +41,23 @@
     </button>
 </EditForm>
 
+
 @code{
 	Producto producto = new();
 	bool productoGuardado = false;
 	string? mensaje;
 	private async Task Guardar()
 	{
-		var response = await Http.PostAsJsonAsync("api/producto", producto);
-		if (response.IsSuccessStatusCode)
-		{
-			var productoServidor = await response.Content.ReadFromJsonAsync<Producto>();
-			if (productoServidor != null)
-			{
-				mensaje = "Producto guardado correctamente";
-				productoGuardado = true;
-				StateHasChanged();
-			}
-		}
-		else
-		{
-			mensaje = "Error al guardar el producto";
-			productoGuardado = false;
-		}
-		producto = new();
-		await InvokeAsync(StateHasChanged);
-        await Task.Delay(2000);
-        mensaje = null;
-        await InvokeAsync(StateHasChanged);
+	    var ok = await ProductoService.CrearProductoAsync(producto);
+
+	    if (ok)
+	    {
+	        Navigation.NavigateTo("/productos");
+	    }
+	    else
+	    {
+	        mensaje = "Error al guardar el producto";
+	        productoGuardado = false;
+	    }
 	}
 }

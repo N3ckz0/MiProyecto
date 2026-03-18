@@ -1,6 +1,6 @@
 @page "/producto/editar/{Id:int}"
-@inject HttpClient Http
 @inject NavigationManager Navigation
+@inject ProductoService ProductoService
 @using MiProyecto.Domain.Entities
 
 <h3>Editar Producto</h3>
@@ -38,20 +38,19 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        producto = await Http.GetFromJsonAsync<Producto>($"api/producto/{Id}");
+        producto = await ProductoService.GetProductoByIdAsync(Id);
     }
 
     private async Task Guardar()
 	{
 		if( producto == null ) return;
-	    producto.Id_producto = Id;
+        
+	    var ok = await ProductoService.EditarProductoAsync(producto);
 
-	    var response = await Http.PutAsJsonAsync($"api/producto/{Id}", producto);
-
-	    Console.WriteLine(response.StatusCode);
-
-	    if (response.IsSuccessStatusCode)
-	        Navigation.NavigateTo("/productos");
+        if (ok)
+            Navigation.NavigateTo("/productos");
+        else
+            Console.WriteLine("Error al actualizar");
 	}
 
     private void Volver()
