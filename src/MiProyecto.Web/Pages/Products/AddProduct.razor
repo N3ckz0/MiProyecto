@@ -46,7 +46,7 @@
 
 
 @code{
-    Producto producto = new();
+    ProductoDto producto = new();
     bool productoGuardado = false;
     string? mensaje;
 
@@ -65,8 +65,14 @@
         {
             if (isOnline)
             {
-                // Si está online, guarda el producto en la API
-                var ok = await ProductoService.CrearProductoAsync(producto);
+                var productoEntity = new Producto
+                {
+                    Id_producto = producto.Id_producto,
+                    Nombre = producto.Nombre,
+                    Precio = producto.Precio
+                };
+
+                var ok = await ProductoService.CrearProductoAsync(productoEntity);
 
                 if (ok)
                 {
@@ -82,19 +88,24 @@
             }
             else
             {
-                // Si está offline, encola la operación para procesarla después
+                producto.SyncStatus = SyncStatus.PendingCreate;
+
+                // Encolar operación para sincronización futura
                 var operation = new OfflineOperation
                 {
                     OperationType = "Create",
-                    EntityData = JsonSerializer.Serialize(producto)
+                    EntityData = JsonSerializer.Serialize(producto),
+                    CreatedAt = DateTime.UtcNow
                 };
+                await QueueService.EnqueueAsync(operation);
 
-                await QueueService.EnqueueAsync(operation); // Encola la operación
+                // Guardar en cache local para que se vea inmediatamente en la UI
+                var productosCache = await ProductoService.GetProductosAsync(); // obtiene desde cache
+                productosCache.Add(producto);
 
-                mensaje = "Producto agregado a la cola para guardar cuando vuelva a estar online.";
-                productoGuardado = true;
+                await ProductoService.GuardarProductosDtoEnCacheAsync(productosCache); // actualizar IndexedDB
 
-                Navigation.NavigateTo("/productos");  // Redirige a la lista de productos
+                Navigation.NavigateTo("/productos"); // luego redirige
             }
         }
         catch (Exception ex)

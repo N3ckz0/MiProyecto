@@ -1,23 +1,24 @@
 @page "/productos"
-@inject IJSRuntime JS
 @inject NetworkService NetworkService
 @inject ProductoService ProductoService
-@using MiProyecto.Domain.Entities
-@using System.Text.Json
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Inicio</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Productos</li>
+        <li class="breadcrumb-item active">Productos</li>
     </ol>
 </nav>
+
 <div class="d-flex align-items-center mb-4">
     <h3 class="m-0">Productos</h3>
     <a class="btn btn-primary ms-auto" href="/producto_agregar">Agregar</a>
-    <button class="btn"><i class="bi bi-arrow-repeat fs-4"></i></button>
+@if( isOnline ){
+    <button class="btn" @onclick="Recargar">
+        <i class="bi bi-arrow-repeat fs-4"></i>
+    </button>
+}
 </div>
 
-<p>@(isOnline ? "🟢 Online" : "🔴 Offline")</p>
 
 @if (productos == null)
 {
@@ -26,89 +27,113 @@
 else
 {
     <table class="w-100 table text-center">
-    	<thead>
-    		<tr>
-    			<th>ID</th>
-    			<th>Nombre</th>
-    			<th>Precio</th>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Estado</th>
                 <th></th>
                 <th></th>
                 <th></th>
-    		</tr>
-    	</thead>
-    	<tbody>    		
-        @foreach (var p in productos)
-        {
-        	<tr>
-            	<td>@p.Id_producto</td>
-            	<td>@p.Nombre</td>
-            	<td>@p.Precio</td>
-                <td><a href="/producto/@p.Id_producto"><i class="bi bi-search text-success fs-4"></i></a></td>
-                <td><a href="/producto/editar/@p.Id_producto"><i class="bi bi-pencil-square text-warning fs-4"></i></a></td>
-                <td><i class="bi bi-trash3 text-danger fs-4" @onclick="() => Eliminar(p.Id_producto)"></i></td>
             </tr>
-        }        	
+        </thead>
+        <tbody>
+        @foreach (var p in productos.Where(x => x.SyncStatus != SyncStatus.PendingDelete))
+        {
+            <tr class="@GetRowClass(p)">
+                <td>@p.Id_producto</td>
+                <td>@p.Nombre</td>
+                <td>@p.Precio</td>
+                <td>
+                    @switch (p.SyncStatus)
+                    {
+                        case SyncStatus.PendingCreate:
+                            <span class="badge bg-warning">Creado offline</span>
+                            break;
+                        case SyncStatus.PendingUpdate:
+                            <span class="badge bg-info">Editado offline</span>
+                            break;
+                        case SyncStatus.PendingDelete:
+                            <span class="badge bg-danger">Eliminación pendiente</span>
+                            break;
+                        default:
+                            <span class="badge bg-success">Sincronizado</span>
+                            break;
+                    }
+                </td>
+
+                <td>
+                    <a href="/producto/@p.Id_producto">
+                        <i class="bi bi-search text-success fs-4"></i>
+                    </a>
+                </td>
+                <td>
+                    <a href="/producto/editar/@p.Id_producto">
+                        <i class="bi bi-pencil-square text-warning fs-4"></i>
+                    </a>
+                </td>
+                <td>
+                    <i class="bi bi-trash3 text-danger fs-4"
+                       @onclick="() => Eliminar(p.Id_producto)">
+                    </i>
+                </td>
+            </tr>
+        }
         </tbody>
     </table>
 }
 
-@code{
-	private List<Producto>? productos;
+@code {
+    private List<ProductoDto>? productos;
     private bool isOnline;
 
-	protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         NetworkService.OnStatusChanged += HandleStatusChange;
         await NetworkService.InitializeAsync();
+
         isOnline = await NetworkService.IsOnline();
 
-        try
-        {
-            // Siempre intenta obtener desde API si está online
-            if (isOnline)
-            {
-                productos = await ProductoService.GetProductosAsync();
+        await CargarProductos();
+    }
 
-                // Guardar en cache IndexedDB
-                if (productos != null && productos.Any())
-                {
-                    await JS.InvokeVoidAsync("offlineService.saveItems", "Productos", JsonSerializer.Serialize(productos));
-                }
-            }
-            else
-            {
-                // Offline → leer desde IndexedDB
-                var json = await JS.InvokeAsync<string>("offlineService.getItems", "Productos");
-                productos = !string.IsNullOrEmpty(json)
-                            ? JsonSerializer.Deserialize<List<Producto>>(json)
-                            : new List<Producto>();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error inicializando productos: {ex.Message}");
-            productos = new List<Producto>();
-        }
+    private async Task CargarProductos()
+    {
+        productos = await ProductoService.GetProductosAsync();
+    }
+
+    private async Task Recargar()
+    {
+        await CargarProductos();
     }
 
     private void HandleStatusChange(bool online)
     {
         isOnline = online;
-        StateHasChanged(); // Refresca la UI
+        _ = CargarProductos(); // recarga automática
+        StateHasChanged();
     }
 
     private async Task Eliminar(int id)
     {
-        var confirmado = await JS.InvokeAsync<bool>("confirm", "¿Seguro que deseas eliminar este producto?");
-
-        if (!confirmado) return;
-
         var ok = await ProductoService.EliminarProductoAsync(id);
 
-        if (ok)
+        if (ok || !isOnline)
         {
-            productos = await ProductoService.GetProductosAsync();
+            await CargarProductos();
         }
+    }
+
+    private string GetRowClass(ProductoDto p)
+    {
+        return p.SyncStatus switch
+        {
+            SyncStatus.PendingCreate => "table-warning",
+            SyncStatus.PendingUpdate => "table-info",
+            SyncStatus.PendingDelete => "table-danger",
+            _ => ""
+        };
     }
 
     public async ValueTask DisposeAsync()
@@ -116,5 +141,4 @@ else
         NetworkService.OnStatusChanged -= HandleStatusChange;
         await NetworkService.DisposeAsync();
     }
-
 }

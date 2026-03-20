@@ -37,29 +37,51 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    private Producto? producto;
+    private ProductoDto? producto;
     private bool isOnline;
 
     protected override async Task OnParametersSetAsync()
     {
         isOnline = await NetworkService.IsOnline();
-        producto = await ProductoService.GetProductoByIdAsync(Id);
+
+        var entity = await ProductoService.GetProductoByIdAsync(Id);
+
+        if (entity != null)
+        {
+            // Mapear Producto → ProductoDto
+            producto = new ProductoDto
+            {
+                Id_producto = entity.Id_producto,
+                Nombre = entity.Nombre,
+                Precio = entity.Precio
+            };
+        }
+        else
+        {
+            // Producto no encontrado → redirigir al listado
+            Navigation.NavigateTo("/productos");
+        }
     }
 
     private async Task Guardar()
     {
         if (producto == null) return;
 
+        var entity = new Producto
+        {
+            Id_producto = producto.Id_producto,
+            Nombre = producto.Nombre,
+            Precio = producto.Precio
+        };
+
         try
         {
             if (isOnline)
             {
                 // Online → actualizar API directamente
-                var ok = await ProductoService.EditarProductoAsync(producto);
+                var ok = await ProductoService.EditarProductoAsync(entity);
                 if (!ok)
-                {
                     Console.WriteLine("Error al actualizar producto en línea");
-                }
             }
             else
             {
@@ -67,12 +89,34 @@ else
                 var operation = new OfflineOperation
                 {
                     OperationType = "Update",
-                    EntityData = JsonSerializer.Serialize(producto)
+                    EntityData = JsonSerializer.Serialize(entity),
+                    CreatedAt = DateTime.UtcNow
                 };
                 await QueueService.EnqueueAsync(operation);
+
+                // Opcional: actualizar cache local inmediatamente
+                var productosCache = await ProductoService.GetProductosAsync();
+                var index = productosCache.FindIndex(p => p.Id_producto == entity.Id_producto);
+                if (index >= 0)
+                    productosCache[index] = new ProductoDto
+                    {
+                        Id_producto = entity.Id_producto,
+                        Nombre = entity.Nombre,
+                        Precio = entity.Precio ?? 0,
+                        SyncStatus = SyncStatus.PendingUpdate
+                    };
+                else
+                    productosCache.Add(new ProductoDto
+                    {
+                        Id_producto = entity.Id_producto,
+                        Nombre = entity.Nombre,
+                        Precio = entity.Precio ?? 0,
+                        SyncStatus = SyncStatus.PendingUpdate
+                    });
+
+                await ProductoService.GuardarProductosDtoEnCacheAsync(productosCache);
             }
 
-            // Redirigir al listado
             Navigation.NavigateTo("/productos");
         }
         catch (Exception ex)

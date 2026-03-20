@@ -1,5 +1,4 @@
 using Microsoft.JSInterop;
-using MiProyecto.Domain.Entities;
 using System.Text.Json;
 
 public class OfflineCacheService
@@ -13,9 +12,6 @@ public class OfflineCacheService
         _js = js;
     }
 
-    /// <summary>
-    /// Inicializa la base de datos y el object store de productos.
-    /// </summary>
     public async Task InitializeAsync()
     {
         try
@@ -28,16 +24,15 @@ public class OfflineCacheService
         }
     }
 
-    /// <summary>
-    /// Guarda la lista de productos en IndexedDB.
-    /// </summary>
-    public async Task SaveProductosAsync(List<Producto> productos)
+    // 🔥 AHORA USA DTO
+    public async Task SaveProductosAsync(List<ProductoDto> productos)
     {
         try
         {
-            if (productos == null || !productos.Any()) return;
+            if (productos == null) return;
+
             string json = JsonSerializer.Serialize(productos);
-            await _js.InvokeVoidAsync("offlineService.saveItems", "Productos", json);
+            await _js.InvokeVoidAsync("offlineService.saveItems", STORE_NAME, json);
         }
         catch (JSException ex)
         {
@@ -45,28 +40,30 @@ public class OfflineCacheService
         }
     }
 
-    public async Task<List<Producto>> GetProductosAsync()
+    public async Task<List<ProductoDto>> GetProductosAsync()
     {
         try
         {
-            string json = await _js.InvokeAsync<string>("offlineService.getItems", "Productos");
-            if (string.IsNullOrEmpty(json)) return new List<Producto>();
-            return JsonSerializer.Deserialize<List<Producto>>(json) ?? new List<Producto>();
+            string json = await _js.InvokeAsync<string>("offlineService.getItems", STORE_NAME);
+
+            if (string.IsNullOrEmpty(json))
+                return new List<ProductoDto>();
+
+            return JsonSerializer.Deserialize<List<ProductoDto>>(json)
+                   ?? new List<ProductoDto>();
         }
         catch (JSException ex)
         {
             Console.WriteLine($"Error obteniendo productos del cache: {ex.Message}");
-            return new List<Producto>();
+            return new List<ProductoDto>();
         }
     }
 
-    public async Task<Producto?> GetProductoByIdAsync(int id)
+    public async Task<ProductoDto?> GetProductoByIdAsync(int id)
     {
         try
         {
-            // Obtener todos los productos desde IndexedDB
             var productos = await GetProductosAsync();
-            // Buscar el producto con el Id solicitado
             return productos.FirstOrDefault(p => p.Id_producto == id);
         }
         catch (JSException ex)
@@ -76,9 +73,6 @@ public class OfflineCacheService
         }
     }
 
-    /// <summary>
-    /// Limpia todos los productos del cache.
-    /// </summary>
     public async Task ClearAsync()
     {
         try

@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
-using MiProyecto.Domain.Entities;
 using System.Text.Json;
+using MiProyecto.Domain.Entities;
 
 public class ProductoService
 {
@@ -10,7 +10,7 @@ public class ProductoService
     private readonly NetworkService _networkService;
 
     public ProductoService(
-        HttpClient http, 
+        HttpClient http,
         OfflineCacheService cacheService,
         OfflineQueueService queueService,
         NetworkService networkService)
@@ -21,123 +21,108 @@ public class ProductoService
         _networkService = networkService;
     }
 
-    // Obtiene los productos
-    public async Task<List<Producto>> GetProductosAsync()
+    // 🔥 GET CON MERGE REAL
+    public async Task<List<ProductoDto>> GetProductosAsync()
     {
+        var local = await _cacheService.GetProductosAsync();
+
         if (await _networkService.IsOnline())
         {
             await _queueService.ProcessQueueAsync();
+
             try
             {
-                var productos = await _http.GetFromJsonAsync<List<Producto>>("api/producto")
-                               ?? new List<Producto>();
+                var api = await _http.GetFromJsonAsync<List<Producto>>("api/producto")
+                          ?? new List<Producto>();
 
-                // Guardar cache local
-                await _cacheService.SaveProductosAsync(productos);
-                return productos;
+                var apiDtos = api.Select(p => new ProductoDto
+                {
+                    Id_producto = p.Id_producto,
+                    Nombre = p.Nombre ?? "",
+                    Precio = p.Precio ?? 0,
+                    SyncStatus = SyncStatus.Synced
+                }).ToList();
+
+                // 🔥 conservar offline
+                var offline = local
+                    .Where(p => p.SyncStatus != SyncStatus.Synced)
+                    .ToList();
+
+                var merged = apiDtos.Concat(offline).ToList();
+
+                await _cacheService.SaveProductosAsync(merged);
+
+                return merged;
             }
             catch
             {
-                // En caso de error, usar cache
-                return await _cacheService.GetProductosAsync();
+                return local;
             }
         }
-        else
-        {
-            // Offline → usar cache
-            return await _cacheService.GetProductosAsync();
-        }
+
+        return local;
     }
 
-    // Crear producto
+    // 🔥 CREAR
     public async Task<bool> CrearProductoAsync(Producto producto)
     {
         if (await _networkService.IsOnline())
         {
             await _queueService.ProcessQueueAsync();
+
             try
             {
                 var response = await _http.PostAsJsonAsync("api/producto", producto);
+
                 if (response.IsSuccessStatusCode)
                 {
-                    // Actualizar cache
-                    var productos = await GetProductosAsync();
-                    productos.Add(producto);
-                    await _cacheService.SaveProductosAsync(productos);
                     return true;
                 }
-                return false;
             }
-            catch
-            {
-                // Offline → encolar operación
-                await _queueService.EnqueueAsync(new OfflineOperation
-                {
-                    OperationType = "Create",
-                    EntityType = "Producto",
-                    EntityData = JsonSerializer.Serialize(producto),
-                    CreatedAt = DateTime.UtcNow
-                });
-                return false;
-            }
+            catch { }
         }
-        else
+
+        // 🔥 OFFLINE
+        var dto = new ProductoDto
         {
-            await _queueService.EnqueueAsync(new OfflineOperation
-            {
-                OperationType = "Create",
-                EntityType = "Producto",
-                EntityData = JsonSerializer.Serialize(producto),
-                CreatedAt = DateTime.UtcNow
-            });
+            Id_producto = (int)(-DateTime.Now.Ticks % int.MaxValue),
+            Nombre = producto.Nombre ?? "",
+            SyncStatus = SyncStatus.PendingCreate
+        };
 
-            // Actualizar cache local
-            var productos = await _cacheService.GetProductosAsync();
-            productos.Add(producto);
-            await _cacheService.SaveProductosAsync(productos);
+        await _queueService.EnqueueAsync(new OfflineOperation
+        {
+            OperationType = "Create",
+            EntityType = "Producto",
+            EntityData = JsonSerializer.Serialize(producto),
+            CreatedAt = DateTime.UtcNow
+        });
 
-            return false;
-        }
+        var productos = await _cacheService.GetProductosAsync();
+        productos.Add(dto);
+        await _cacheService.SaveProductosAsync(productos);
+
+        return false;
     }
 
-    // Editar producto
+    // 🔥 EDITAR
     public async Task<bool> EditarProductoAsync(Producto producto)
     {
         if (await _networkService.IsOnline())
         {
             await _queueService.ProcessQueueAsync();
+
             try
             {
                 var response = await _http.PutAsJsonAsync($"api/producto/{producto.Id_producto}", producto);
-                if (response.IsSuccessStatusCode)
-                {
-                    var productos = await GetProductosAsync();
-                    var index = productos.FindIndex(p => p.Id_producto == producto.Id_producto);
-                    if (index >= 0) productos[index] = producto;
-                    await _cacheService.SaveProductosAsync(productos);
-                    return true;
-                }
-                return false;
-            }
-            catch
-            {
-                await EnqueueOfflineEdit(producto);
-                return false;
-            }
-        }
-        else
-        {
-            await EnqueueOfflineEdit(producto);
-            var productos = await _cacheService.GetProductosAsync();
-            var index = productos.FindIndex(p => p.Id_producto == producto.Id_producto);
-            if (index >= 0) productos[index] = producto;
-            await _cacheService.SaveProductosAsync(productos);
-            return false;
-        }
-    }
 
-    private async Task EnqueueOfflineEdit(Producto producto)
-    {
+                if (response.IsSuccessStatusCode)
+                    return true;
+            }
+            catch { }
+        }
+
+        // OFFLINE
         await _queueService.EnqueueAsync(new OfflineOperation
         {
             OperationType = "Update",
@@ -145,44 +130,38 @@ public class ProductoService
             EntityData = JsonSerializer.Serialize(producto),
             CreatedAt = DateTime.UtcNow
         });
+
+        var productos = await _cacheService.GetProductosAsync();
+
+        var index = productos.FindIndex(p => p.Id_producto == producto.Id_producto);
+        if (index >= 0)
+        {
+            productos[index].Nombre = producto.Nombre ?? "";
+            productos[index].SyncStatus = SyncStatus.PendingUpdate;
+        }
+
+        await _cacheService.SaveProductosAsync(productos);
+
+        return false;
     }
 
-    // Eliminar producto
+    // 🔥 ELIMINAR
     public async Task<bool> EliminarProductoAsync(int id)
     {
         if (await _networkService.IsOnline())
         {
             await _queueService.ProcessQueueAsync();
+
             try
             {
                 var response = await _http.DeleteAsync($"api/producto/{id}");
-                if (response.IsSuccessStatusCode)
-                {
-                    var productos = await GetProductosAsync();
-                    productos.RemoveAll(p => p.Id_producto == id);
-                    await _cacheService.SaveProductosAsync(productos);
-                    return true;
-                }
-                return false;
-            }
-            catch
-            {
-                await EnqueueOfflineDelete(id);
-                return false;
-            }
-        }
-        else
-        {
-            await EnqueueOfflineDelete(id);
-            var productos = await _cacheService.GetProductosAsync();
-            productos.RemoveAll(p => p.Id_producto == id);
-            await _cacheService.SaveProductosAsync(productos);
-            return false;
-        }
-    }
 
-    private async Task EnqueueOfflineDelete(int id)
-    {
+                if (response.IsSuccessStatusCode)
+                    return true;
+            }
+            catch { }
+        }
+
         await _queueService.EnqueueAsync(new OfflineOperation
         {
             OperationType = "Delete",
@@ -190,12 +169,43 @@ public class ProductoService
             EntityData = JsonSerializer.Serialize(new { Id_producto = id }),
             CreatedAt = DateTime.UtcNow
         });
+
+        var productos = await _cacheService.GetProductosAsync();
+
+        var item = productos.FirstOrDefault(p => p.Id_producto == id);
+        if (item != null)
+        {
+            item.SyncStatus = SyncStatus.PendingDelete;
+        }
+
+        await _cacheService.SaveProductosAsync(productos);
+
+        return false;
     }
 
-    // Obtener producto por id
-    public async Task<Producto?> GetProductoByIdAsync(int id)
+    public async Task<ProductoDto?> GetProductoByIdAsync(int id)
     {
         var productos = await GetProductosAsync();
         return productos.FirstOrDefault(p => p.Id_producto == id);
+    }
+
+    // Recibe lista de ProductoDto
+    public async Task GuardarProductosDtoEnCacheAsync(List<ProductoDto> productosDto)
+    {
+        await _cacheService.SaveProductosAsync(productosDto);
+    }
+
+    // Recibe lista de Producto (si en algún caso necesitas convertir)
+    public async Task GuardarProductosEnCacheAsync(List<Producto> productos)
+    {
+        // Convertimos Producto a ProductoDto para guardarlo en el cache
+        var productosDto = productos.Select(p => new ProductoDto
+        {
+            Id_producto = p.Id_producto,
+            Nombre = p.Nombre ?? "",
+            Precio = p.Precio ?? 0
+        }).ToList();
+
+        await _cacheService.SaveProductosAsync(productosDto);
     }
 }

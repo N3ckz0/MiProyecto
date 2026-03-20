@@ -40,87 +40,100 @@ public class OfflineQueueService
         await _js.InvokeVoidAsync("offlineService.clearStore", STORE_QUEUE);
     }
 
-    /// <summary>
-    /// Procesa la cola de operaciones pendientes y las sincroniza con la API.
-    /// </summary>
+    // 🔥 PROCESO DE SINCRONIZACIÓN REAL
     public async Task ProcessQueueAsync()
     {
         var queue = await GetQueueAsync();
         if (!queue.Any()) return;
 
+        var productos = await _cacheService.GetProductosAsync();
+
         foreach (var op in queue)
         {
             try
             {
-                bool success = false;
+
                 switch (op.OperationType)
                 {
                     case "Create":
                         var productoCreate = JsonSerializer.Deserialize<Producto>(op.EntityData);
+
                         if (productoCreate != null)
                         {
                             var response = await _http.PostAsJsonAsync("api/producto", productoCreate);
-                            success = response.IsSuccessStatusCode;
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var createdFromApi = await response.Content.ReadFromJsonAsync<Producto>();
+
+                                if (createdFromApi != null)
+                                {
+                                    // 🔥 reemplazar el offline
+                                    var local = productos.FirstOrDefault(p =>
+                                        p.Nombre == productoCreate.Nombre &&
+                                        p.SyncStatus == SyncStatus.PendingCreate);
+
+                                    if (local != null)
+                                    {
+                                        local.Id_producto = createdFromApi.Id_producto;
+                                        local.SyncStatus = SyncStatus.Synced;
+                                    }
+                                }
+
+                            }
                         }
                         break;
 
                     case "Update":
                         var productoUpdate = JsonSerializer.Deserialize<Producto>(op.EntityData);
+
                         if (productoUpdate != null)
                         {
-                            var response = await _http.PutAsJsonAsync($"api/producto/{productoUpdate.Id_producto}", productoUpdate);
-                            success = response.IsSuccessStatusCode;
+                            var response = await _http.PutAsJsonAsync(
+                                $"api/producto/{productoUpdate.Id_producto}",
+                                productoUpdate);
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var local = productos.FirstOrDefault(p =>
+                                    p.Id_producto == productoUpdate.Id_producto);
+
+                                if (local != null)
+                                {
+                                    local.SyncStatus = SyncStatus.Synced;
+                                }
+
+                            }
                         }
                         break;
 
                     case "Delete":
                         var obj = JsonSerializer.Deserialize<JsonElement>(op.EntityData);
+
                         if (obj.TryGetProperty("Id_producto", out var idProp))
                         {
                             int id = idProp.GetInt32();
+
                             var response = await _http.DeleteAsync($"api/producto/{id}");
-                            success = response.IsSuccessStatusCode;
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                productos.RemoveAll(p => p.Id_producto == id);
+                            }
                         }
                         break;
-                }
-
-                if (success)
-                {
-                    // Actualizar cache local
-                    var productos = await _cacheService.GetProductosAsync();
-                    switch (op.OperationType)
-                    {
-                        case "Create":
-                            var created = JsonSerializer.Deserialize<Producto>(op.EntityData);
-                            if (created != null) productos.Add(created);
-                            break;
-                        case "Update":
-                            var updated = JsonSerializer.Deserialize<Producto>(op.EntityData);
-                            if (updated != null)
-                            {
-                                var index = productos.FindIndex(p => p.Id_producto == updated.Id_producto);
-                                if (index >= 0) productos[index] = updated;
-                            }
-                            break;
-                        case "Delete":
-                            var obj = JsonSerializer.Deserialize<JsonElement>(op.EntityData);
-                            if (obj.TryGetProperty("Id_producto", out var deleteIdProp))
-                            {
-                                int deleteId = deleteIdProp.GetInt32();
-                                productos.RemoveAll(p => p.Id_producto == deleteId);
-                            }
-                            break;
-                    }
-                    await _cacheService.SaveProductosAsync(productos);
                 }
             }
             catch
             {
-                // Si falla, simplemente se queda en la cola para intentar después
+                // se reintenta después
             }
         }
 
-        // Limpiar cola procesada
+        // 🔥 guardar estado final limpio
+        await _cacheService.SaveProductosAsync(productos);
+
+        // 🔥 limpiar cola
         await ClearQueueAsync();
     }
 }
