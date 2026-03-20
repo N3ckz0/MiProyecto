@@ -88,6 +88,7 @@
             }
             else
             {
+                producto.Id_producto = (int)(-DateTime.Now.Ticks % int.MaxValue);
                 producto.SyncStatus = SyncStatus.PendingCreate;
 
                 // Encolar operación para sincronización futura

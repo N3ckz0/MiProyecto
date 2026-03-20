@@ -60,7 +60,11 @@ public class OfflineQueueService
 
                         if (productoCreate != null)
                         {
-                            var response = await _http.PostAsJsonAsync("api/producto", productoCreate);
+                            var response = await _http.PostAsJsonAsync("api/producto", new Producto
+                            {
+                                Nombre = productoCreate.Nombre,
+                                Precio = productoCreate.Precio
+                            });
 
                             if (response.IsSuccessStatusCode)
                             {
@@ -70,7 +74,7 @@ public class OfflineQueueService
                                 {
                                     // 🔥 reemplazar el offline
                                     var local = productos.FirstOrDefault(p =>
-                                        p.Nombre == productoCreate.Nombre &&
+                                        p.Id_producto == productoCreate.Id_producto &&
                                         p.SyncStatus == SyncStatus.PendingCreate);
 
                                     if (local != null)

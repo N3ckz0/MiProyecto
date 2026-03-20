@@ -28,7 +28,6 @@ public class ProductoService
 
         if (await _networkService.IsOnline())
         {
-            await _queueService.ProcessQueueAsync();
 
             try
             {
@@ -68,7 +67,6 @@ public class ProductoService
     {
         if (await _networkService.IsOnline())
         {
-            await _queueService.ProcessQueueAsync();
 
             try
             {
@@ -110,7 +108,6 @@ public class ProductoService
     {
         if (await _networkService.IsOnline())
         {
-            await _queueService.ProcessQueueAsync();
 
             try
             {
@@ -150,7 +147,6 @@ public class ProductoService
     {
         if (await _networkService.IsOnline())
         {
-            await _queueService.ProcessQueueAsync();
 
             try
             {

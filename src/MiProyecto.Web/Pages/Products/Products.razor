@@ -1,6 +1,7 @@
 @page "/productos"
 @inject NetworkService NetworkService
 @inject ProductoService ProductoService
+@inject OfflineQueueService QueueService
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -13,7 +14,7 @@
     <h3 class="m-0">Productos</h3>
     <a class="btn btn-primary ms-auto" href="/producto_agregar">Agregar</a>
 @if( isOnline ){
-    <button class="btn" @onclick="Recargar">
+    <button class="btn" @onclick="Sincronizar">
         <i class="bi bi-arrow-repeat fs-4"></i>
     </button>
 }
@@ -103,15 +104,15 @@ else
         productos = await ProductoService.GetProductosAsync();
     }
 
-    private async Task Recargar()
+    private async Task Sincronizar()
     {
+        await QueueService.ProcessQueueAsync();
         await CargarProductos();
     }
 
     private void HandleStatusChange(bool online)
     {
         isOnline = online;
-        _ = CargarProductos(); // recarga automática
         StateHasChanged();
     }
 
