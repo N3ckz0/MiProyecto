@@ -47,12 +47,48 @@ public class OfflineQueueService
         if (!queue.Any()) return;
 
         var productos = await _cacheService.GetProductosAsync();
+        var operationsByProduct = new Dictionary<int, OfflineOperation>();
 
+        // Agrupamos las operaciones por producto
         foreach (var op in queue)
+        {
+            var producto = JsonSerializer.Deserialize<Producto>(op.EntityData);
+            if (producto == null) continue;
+
+            // Si el producto ya tiene una operación en la cola, decidimos qué hacer
+            if (operationsByProduct.ContainsKey(producto.Id_producto))
+            {
+                var existingOp = operationsByProduct[producto.Id_producto];
+
+                // Prioridad de operaciones (Create > Update > Delete)
+                if (op.OperationType == "Delete")
+                {
+                    // Si hay una operación Delete, no la combinamos con Create o Update
+                    operationsByProduct[producto.Id_producto] = op;
+                }
+                else if (op.OperationType == "Update" && existingOp.OperationType != "Create")
+                {
+                    // Si ya existe una operación Create, mantenemos la Create, si es solo Update lo reemplazamos
+                    operationsByProduct[producto.Id_producto] = op;
+                }
+                // Si es un Create y no hay ninguna operación anterior, lo agregamos
+                else if (op.OperationType == "Create" && existingOp.OperationType != "Create")
+                {
+                    operationsByProduct[producto.Id_producto] = op;
+                }
+            }
+            else
+            {
+                // Si no existe una operación para este producto, la agregamos
+                operationsByProduct[producto.Id_producto] = op;
+            }
+        }
+
+        // Ahora procesamos las operaciones optimizadas (coalesced)
+        foreach (var op in operationsByProduct.Values)
         {
             try
             {
-
                 switch (op.OperationType)
                 {
                     case "Create":
@@ -106,7 +142,6 @@ public class OfflineQueueService
                                 {
                                     local.SyncStatus = SyncStatus.Synced;
                                 }
-
                             }
                         }
                         break;
@@ -130,7 +165,7 @@ public class OfflineQueueService
             }
             catch
             {
-                // se reintenta después
+                // Si hay error, la operación se reintentará más tarde
             }
         }
 
