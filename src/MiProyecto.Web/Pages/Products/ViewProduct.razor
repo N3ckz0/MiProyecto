@@ -1,6 +1,9 @@
 @page "/producto/{Id:int}"
 @inject ProductoService ProductoService
+@inject OfflineCacheService CacheService
+@inject NetworkService NetworkService
 @using MiProyecto.Domain.Entities
+@using System.Text.Json
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -32,9 +35,35 @@ else
     public int Id { get; set; }
 
     private Producto? producto;
+    private bool isOnline;
 
     protected override async Task OnParametersSetAsync()
     {
-        producto = await ProductoService.GetProductoByIdAsync(Id);
+        isOnline = await NetworkService.IsOnline();
+
+        try
+        {
+            if (isOnline)
+            {
+                // Si estamos online, obtener desde la API
+                producto = await ProductoService.GetProductoByIdAsync(Id);
+            }
+            else
+            {
+                // Si estamos offline, intentar obtenerlo desde la cache
+                producto = await CacheService.GetProductoByIdAsync(Id);
+            }
+
+            // Si el producto no existe offline, mostrar un mensaje de error
+            if (producto == null && !isOnline)
+            {
+                Console.WriteLine("Producto no encontrado en cache mientras está offline.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error obteniendo producto: {ex.Message}");
+            producto = null;
+        }
     }
 }

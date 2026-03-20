@@ -1,7 +1,10 @@
 @page "/producto_agregar"
 @inject NavigationManager Navigation
 @inject ProductoService ProductoService
+@inject OfflineQueueService QueueService
+@inject NetworkService NetworkService
 @using MiProyecto.Domain.Entities
+@using System.Text.Json
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -43,21 +46,61 @@
 
 
 @code{
-	Producto producto = new();
-	bool productoGuardado = false;
-	string? mensaje;
-	private async Task Guardar()
-	{
-	    var ok = await ProductoService.CrearProductoAsync(producto);
+    Producto producto = new();
+    bool productoGuardado = false;
+    string? mensaje;
 
-	    if (ok)
-	    {
-	        Navigation.NavigateTo("/productos");
-	    }
-	    else
-	    {
-	        mensaje = "Error al guardar el producto";
-	        productoGuardado = false;
-	    }
-	}
+    // Estado de la red
+    private bool isOnline;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Verifica el estado de la red
+        isOnline = await NetworkService.IsOnline();
+    }
+
+    private async Task Guardar()
+    {
+        try
+        {
+            if (isOnline)
+            {
+                // Si está online, guarda el producto en la API
+                var ok = await ProductoService.CrearProductoAsync(producto);
+
+                if (ok)
+                {
+                    mensaje = "Producto guardado correctamente.";
+                    productoGuardado = true;
+                    Navigation.NavigateTo("/productos");  // Redirige a la lista de productos
+                }
+                else
+                {
+                    mensaje = "Error al guardar el producto en línea.";
+                    productoGuardado = false;
+                }
+            }
+            else
+            {
+                // Si está offline, encola la operación para procesarla después
+                var operation = new OfflineOperation
+                {
+                    OperationType = "Create",
+                    EntityData = JsonSerializer.Serialize(producto)
+                };
+
+                await QueueService.EnqueueAsync(operation); // Encola la operación
+
+                mensaje = "Producto agregado a la cola para guardar cuando vuelva a estar online.";
+                productoGuardado = true;
+
+                Navigation.NavigateTo("/productos");  // Redirige a la lista de productos
+            }
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error al intentar guardar el producto: {ex.Message}";
+            productoGuardado = false;
+        }
+    }
 }

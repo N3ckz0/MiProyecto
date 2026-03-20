@@ -1,7 +1,10 @@
 @page "/producto/editar/{Id:int}"
 @inject NavigationManager Navigation
 @inject ProductoService ProductoService
+@inject OfflineQueueService QueueService
+@inject NetworkService NetworkService
 @using MiProyecto.Domain.Entities
+@using System.Text.Json
 
 <h3>Editar Producto</h3>
 
@@ -35,23 +38,48 @@ else
     public int Id { get; set; }
 
     private Producto? producto;
+    private bool isOnline;
 
     protected override async Task OnParametersSetAsync()
     {
+        isOnline = await NetworkService.IsOnline();
         producto = await ProductoService.GetProductoByIdAsync(Id);
     }
 
     private async Task Guardar()
-	{
-		if( producto == null ) return;
-        
-	    var ok = await ProductoService.EditarProductoAsync(producto);
+    {
+        if (producto == null) return;
 
-        if (ok)
+        try
+        {
+            if (isOnline)
+            {
+                // Online → actualizar API directamente
+                var ok = await ProductoService.EditarProductoAsync(producto);
+                if (!ok)
+                {
+                    Console.WriteLine("Error al actualizar producto en línea");
+                }
+            }
+            else
+            {
+                // Offline → encolar operación Update
+                var operation = new OfflineOperation
+                {
+                    OperationType = "Update",
+                    EntityData = JsonSerializer.Serialize(producto)
+                };
+                await QueueService.EnqueueAsync(operation);
+            }
+
+            // Redirigir al listado
             Navigation.NavigateTo("/productos");
-        else
-            Console.WriteLine("Error al actualizar");
-	}
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error guardando producto: {ex.Message}");
+        }
+    }
 
     private void Volver()
     {
