@@ -22,7 +22,7 @@ public class AuthService : IAuthService
         var claims = new[]
         {
             new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.Role, "Admin") // Puedes cambiar roles más adelante
+            new Claim(ClaimTypes.Role, "User") // Puedes cambiar roles más adelante
         };
 
         // Clave secreta (debe ser la misma que en Program.cs)

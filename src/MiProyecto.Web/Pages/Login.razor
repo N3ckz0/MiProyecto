@@ -1,10 +1,9 @@
 @page "/"
+@layout EmptyLayout
 @using MiProyecto.Web.Services
 @inject IJSRuntime JS
 @inject NavigationManager Nav
 @inject IAuthService AuthService
-
-<h3>Login</h3>
 
 @if (isChecking)
 {
@@ -12,9 +11,35 @@
 }
 else
 {
-    <input @bind="username" placeholder="Usuario" />
-    <input @bind="password" type="password" />
-    <button @onclick="HandleLogin">Entrar</button>
+    <div id="login_page" class="container-fluid vh-100">
+        <div class="row h-100">
+
+            <!-- Lado decorativo -->
+            <div class="d-none d-lg-flex col-lg-6 login-side">
+                <div class="login-side-content">
+                    <h2>Bienvenido</h2>
+                    <p>Accede a tu sistema</p>
+                </div>
+            </div>
+
+            <!-- Formulario -->
+            <div class="col-12 col-lg-6 d-flex justify-content-center align-items-center">
+                <div class="login-card">
+
+                    <h3 class="mb-4 text-center">Login</h3>
+
+                    <input class="form-control mb-3" @bind="username" placeholder="Usuario" />
+                    <input class="form-control mb-3" @bind="password" type="password" placeholder="Contraseña" />
+
+                    <button class="btn btn-primary w-100" @onclick="HandleLogin">
+                        Entrar
+                    </button>
+
+                </div>
+            </div>
+
+        </div>
+    </div>   
 }
 
 @code {
