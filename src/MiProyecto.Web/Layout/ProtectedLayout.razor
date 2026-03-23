@@ -1,0 +1,24 @@
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+@inherits LayoutComponentBase
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "token");
+        if (string.IsNullOrEmpty(token))
+        {
+            Nav.NavigateTo("/login", true);
+        }
+    }
+}
+
+<div class="protected-container">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+    <div class="content">
+        @Body
+    </div>
+</div>

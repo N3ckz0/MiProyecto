@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MiProyecto.Domain\MiProyecto.Domain.csproj" />
+    <ProjectReference Include="..\MiProyecto.Application\MiProyecto.Application.csproj" />
   </ItemGroup>
 
 </Project>
