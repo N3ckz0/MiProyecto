@@ -20,15 +20,14 @@ builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor",
-        policy =>
-        {
-            policy.WithOrigins(
-                    "http://localhost:5023",
-                    "http://192.168.100.95:5002"
-                    )
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+        policy => policy
+            .WithOrigins(
+                "http://localhost:5023",
+                "http://192.168.100.95:5002")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials() // si tu Blazor hace cookies o credenciales
+    );
 });
 
 builder.Services.AddAuthentication("Bearer")
@@ -47,10 +46,11 @@ builder.Services.AddAuthentication("Bearer")
 
 var app = builder.Build();
 
+app.UseCors("AllowBlazor");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseCors("AllowBlazor");
 
 app.MapControllers();
 

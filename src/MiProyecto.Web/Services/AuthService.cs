@@ -27,10 +27,9 @@ namespace MiProyecto.Web.Services
             if (result == null || string.IsNullOrEmpty(result.Token))
                 return null; // Login fallido
 
-            // Guardar token en localStorage
             await _js.InvokeVoidAsync("localStorage.setItem", "token", result.Token);
 
-            return result.Token; // Retornar token
+            return result.Token;
         }
     }
 }

@@ -1,4 +1,5 @@
 @page "/"
+@using MiProyecto.Web.Services
 @inject IJSRuntime JS
 @inject NavigationManager Nav
 @inject IAuthService AuthService
@@ -27,32 +28,19 @@ else
 
         if (!string.IsNullOrEmpty(token))
         {
-            // Si hay token, vamos directo a home
-            Nav.NavigateTo("/home", true);
+            Nav.NavigateTo("/home");
             return;
         }
 
-        isChecking = false; // Solo mostramos el formulario si no hay token
+        isChecking = false;
     }
 
     private async Task HandleLogin()
     {
-        try
+        var token = await AuthService.LoginAsync(username, password);
+        if (!string.IsNullOrEmpty(token))
         {
-            var token = await AuthService.LoginAsync(username, password);
-
-            if (string.IsNullOrEmpty(token))
-            {
-                Console.WriteLine("Usuario o contraseña incorrectos");
-                return; // Salimos sin redirigir
-            }
-
-            // El token ya se guarda dentro de AuthService.LoginAsync
-            Nav.NavigateTo("/home"); // Redirigimos solo si login exitoso
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error en login: {ex.Message}");
+            Nav.NavigateTo("/home");
         }
     }
 }

@@ -93,7 +93,6 @@ else
     {
         NetworkService.OnStatusChanged += HandleStatusChange;
         await NetworkService.InitializeAsync();
-
         isOnline = await NetworkService.IsOnline();
 
         await CargarProductos();
