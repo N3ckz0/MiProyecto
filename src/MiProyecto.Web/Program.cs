@@ -10,10 +10,10 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // HttpClient base para llamadas a la API
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["ApiUrl"]!) });
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<HttpClient>(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["ApiUrl"]!) });
 
 // Registrar servicios con implementaciones concretas
-builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<AuthHttpService>();
 builder.Services.AddScoped<NetworkService>();
 builder.Services.AddScoped<OfflineCacheService>();
