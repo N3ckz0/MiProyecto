@@ -14,11 +14,18 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        var token = await _authService.LoginAsync(dto.Username, dto.Password);
-
-        if (string.IsNullOrEmpty(token))
-            return Unauthorized("Usuario o contraseña incorrectos");
-
-        return Ok(new { token });
+        try{
+            var token = await _authService.LoginAsync(dto.Username, dto.Password);
+            return Ok(new { token });
+        }
+            catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message); // devuelve 401 y mensaje
+        }
+        catch (Exception ex)
+        {
+            // opcional: log del error real
+            return StatusCode(500, "Error interno del servidor");
+        }
     }
 }

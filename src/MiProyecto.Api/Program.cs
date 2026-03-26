@@ -15,6 +15,9 @@ builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 
+builder.Services.AddScoped<IUserRepository>(sp =>
+    new UserRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>

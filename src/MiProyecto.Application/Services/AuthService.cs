@@ -2,36 +2,44 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using MiProyecto.Application.Interfaces;
+using BCrypt.Net;
 
 public class AuthService : IAuthService
 {
-    public async Task<string> LoginAsync(string username, string password)
-    {
-        // Validar usuario (mock por ahora)
-        if (username == "admin" && password == "1234")
-        {
-            return GenerateJwtToken(username);
-        }
+    private readonly IUserRepository _userRepository;
 
-        throw new UnauthorizedAccessException();
+    public AuthService(IUserRepository userRepository)
+    {
+        _userRepository = userRepository;
     }
 
-    private string GenerateJwtToken(string username)
+    public async Task<string> LoginAsync(string username, string password)
     {
-        // Claims: información que quieres poner en el token
+        var user = await _userRepository.GetByUsernameAsync(username);
+        if (user == null)
+            throw new UnauthorizedAccessException("Usuario no encontrado");
+
+        // Validar contraseña con bcrypt
+        if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            throw new UnauthorizedAccessException("Contraseña incorrecta");
+
+        return GenerateJwtToken(user.Username, user.Role);
+    }
+
+    private string GenerateJwtToken(string username, string role)
+    {
         var claims = new[]
         {
             new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.Role, "User") // Puedes cambiar roles más adelante
+            new Claim(ClaimTypes.Role, role)
         };
 
-        // Clave secreta (debe ser la misma que en Program.cs)
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes("MI_CLAVE_SUPER_SECRETA_1234567890123456"));
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        // Crear el token
         var token = new JwtSecurityToken(
             issuer: null,
             audience: null,
@@ -40,7 +48,6 @@ public class AuthService : IAuthService
             signingCredentials: creds
         );
 
-        // Devolver el token como string
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
