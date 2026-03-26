@@ -2,31 +2,41 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MiProyecto.Web;
 using MiProyecto.Web.Services;
-using System.Net.Http;
 using Microsoft.JSInterop;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-    
+
+// 🔥 Handler JWT
 builder.Services.AddScoped<JwtAuthorizationHandler>();
 
-// HttpClient base para llamadas a la API
-builder.Services.AddHttpClient<IAuthService, MiProyecto.Web.Services.AuthService>(client =>
+// HttpClient solo para login (sin JWT)
+builder.Services.AddHttpClient("AuthClient", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiUrl"]!);
 });
 
-builder.Services.AddHttpClient<ProductoService>(client =>
+// AuthService usando AuthClient
+builder.Services.AddScoped<IAuthService>(sp =>
+{
+    var factory = sp.GetRequiredService<IHttpClientFactory>();
+    var js = sp.GetRequiredService<IJSRuntime>();
+    return new MiProyecto.Web.Services.AuthService(factory.CreateClient("AuthClient"), js);
+});
+
+// HttpClient central con JWT handler para toda la API
+builder.Services.AddHttpClient("ApiClient", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiUrl"]!);
 })
 .AddHttpMessageHandler<JwtAuthorizationHandler>();
 
-// Registrar servicios con implementaciones concretas
-builder.Services.AddScoped<NetworkService>();
-builder.Services.AddScoped<OfflineCacheService>();
+// 🔥 Servicios de la app
+builder.Services.AddScoped<ProductoService>();
 builder.Services.AddScoped<OfflineQueueService>();
+builder.Services.AddScoped<OfflineCacheService>();
+builder.Services.AddScoped<NetworkService>();
 
 await builder.Build().RunAsync();

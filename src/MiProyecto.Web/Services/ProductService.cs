@@ -10,12 +10,12 @@ public class ProductoService
     private readonly NetworkService _networkService;
 
     public ProductoService(
-        HttpClient http,
+        IHttpClientFactory httpFactory,
         OfflineCacheService cacheService,
         OfflineQueueService queueService,
         NetworkService networkService)
     {
-        _http = http;
+        _http = httpFactory.CreateClient("ApiClient");
         _cacheService = cacheService;
         _queueService = queueService;
         _networkService = networkService;

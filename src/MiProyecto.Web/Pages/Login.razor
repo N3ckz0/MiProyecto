@@ -1,9 +1,9 @@
 @page "/"
 @layout EmptyLayout
 @using MiProyecto.Web.Services
+@inject IAuthService AuthService
 @inject IJSRuntime JS
 @inject NavigationManager Nav
-@inject IAuthService AuthService
 
 @if (isChecking)
 {
@@ -11,35 +11,14 @@
 }
 else
 {
-    <div id="login_page" class="container-fluid vh-100">
-        <div class="row h-100">
-
-            <!-- Lado decorativo -->
-            <div class="d-none d-lg-flex col-lg-6 login-side">
-                <div class="login-side-content">
-                    <h2>Bienvenido</h2>
-                    <p>Accede a tu sistema</p>
-                </div>
-            </div>
-
-            <!-- Formulario -->
-            <div class="col-12 col-lg-6 d-flex justify-content-center align-items-center">
-                <div class="login-card">
-
-                    <h3 class="mb-4 text-center">Login</h3>
-
-                    <input class="form-control mb-3" @bind="username" placeholder="Usuario" />
-                    <input class="form-control mb-3" @bind="password" type="password" placeholder="Contraseña" />
-
-                    <button class="btn btn-primary w-100" @onclick="HandleLogin">
-                        Entrar
-                    </button>
-
-                </div>
-            </div>
-
+    <div class="container vh-100 d-flex justify-content-center align-items-center">
+        <div class="card p-4">
+            <h3 class="text-center mb-3">Login</h3>
+            <input class="form-control mb-2" @bind="username" placeholder="Usuario" />
+            <input class="form-control mb-3" @bind="password" type="password" placeholder="Contraseña" />
+            <button class="btn btn-primary w-100" @onclick="HandleLogin">Entrar</button>
         </div>
-    </div>   
+    </div>
 }
 
 @code {
@@ -63,9 +42,15 @@ else
     private async Task HandleLogin()
     {
         var token = await AuthService.LoginAsync(username, password);
+
         if (!string.IsNullOrEmpty(token))
         {
             Nav.NavigateTo("/home");
+        }
+        else
+        {
+            // Aquí puedes agregar un mensaje de error si quieres
+            Console.WriteLine("Login fallido");
         }
     }
 }
