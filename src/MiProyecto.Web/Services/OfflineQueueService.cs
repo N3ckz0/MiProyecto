@@ -135,7 +135,7 @@ public class OfflineQueueService
                                 {
                                     local.Id_producto = createdFromApi.Id_producto;
                                     local.SyncStatus = SyncStatus.Synced;
-                                    local.Nombre = createdFromApi.Nombre;
+                                    local.Nombre = createdFromApi.Nombre??"";
                                     local.Precio = createdFromApi.Precio??0;
                                 }
                             }

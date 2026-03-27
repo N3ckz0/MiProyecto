@@ -5,8 +5,8 @@ namespace MiProyecto.Web.Layout
 {
     public partial class NavMenu
     {
-        [Inject] NavigationManager Navigation { get; set; }
-        [Inject] IJSRuntime JS { get; set; }
+        [Inject] public required NavigationManager Navigation { get; set; }
+        [Inject] public required IJSRuntime JS { get; set; }
 
         private bool collapseNavMenu = true;
 
