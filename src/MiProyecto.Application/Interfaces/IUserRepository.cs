@@ -1,9 +1,9 @@
 using MiProyecto.Domain.Entities;
 
-namespace MiProyecto.Application.Interfaces
+namespace MiProyecto.Application.Interfaces;
+
+public interface IUserRepository
 {
-    public interface IUserRepository
-    {
-        Task<User?> GetByUsernameAsync(string username);
-    }
+    Task<IEnumerable<User>> GetAll();
+    Task<User> GetByUsernameAsync(string username);
 }

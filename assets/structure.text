@@ -1,0 +1,64 @@
+MiProyecto
+    └── src/
+        └── MiProyecto.Api/
+            └──Controllers/
+                └──AuthController.cs
+                └──ProductoController.cs
+            └──Models/
+                └──LoginDto.cs
+        └── MiProyecto.Application/
+            └──Interfaces/
+                └──IAuthService.cs
+                └──IProductoRepository.cs
+                └──IProductoService.cs
+                └──IUserRepository.cs
+            └──Services/
+                └──AuthService.cs
+                └──ProductoService.cs
+        └── MiProyecto.Domain/
+            └──Entities/
+                └──Producto.cs
+                └──User.cs
+        └── MiProyecto.Infrastructure/
+            └──Repositories/
+                └──ProductoRepository.cs
+                └──UserRepository.cs
+        └── MiProyecto.Web/
+            └──Authentication
+                └──CustomAuthenticationStateProvider.cs
+            └──Layout/
+                └──EmptyLayout.cs
+                └──NavMenu.razor.cs
+            └──Models/
+                └──LoginResponse.cs
+                └──ProductDto.cs
+            └──Pages/
+                └──Products/
+                    └──AddProduct.razor
+                    └──ModifyProduct.razor
+                    └──Products.razor
+                    └──ViewProduct.razor
+                └──Home.razor
+                └──Login.razor
+                └──NotFound.razor
+            └──Services/
+                └──AuthService.cs
+                └──JwtAuthorizationHandler.cs
+                └──NetworkService.cs
+                └──OfflineCacheService.cs
+                └──OfflineOperation.cs
+                └──OfflineQueueService.cs
+                └──ProductService.cs
+            └──wwwroot/
+                └──lib/
+                    └──bootstrap/
+                    └──bootstrap-icons/
+                └──js/
+                    └──network-service.js
+                    └──offlineService.js
+                └──appsettings.json
+                └──service-worker.js
+                └──service-worker.published.json
+        └──UserInitializer/
+            └──Program.cs
+    └── MiProyecto.slnx

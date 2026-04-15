@@ -9,11 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-builder.Services.AddScoped<IClienteService, ClienteService>();
-builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
-
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+
+builder.Services.AddScoped<IUsersService, UserService>();
 
 builder.Services.AddScoped<IUserRepository>(sp =>
     new UserRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -24,9 +23,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor",
         policy => policy
-            .WithOrigins(
-                "http://localhost:5023",
-                "http://192.168.100.95:5002")
+            .WithOrigins( "https://localhost:7096" )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials() // si tu Blazor hace cookies o credenciales

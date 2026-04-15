@@ -13,6 +13,14 @@ public class UserRepository : IUserRepository
         _connectionString = connectionString;
     }
 
+    public async Task<IEnumerable<User>> GetAll()
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        string sql = @"SELECT * FROM users";
+        var user = await connection.QueryAsync<User>(sql);
+        return user;
+    }
+
     public async Task<User?> GetByUsernameAsync(string username)
     {
         using var connection = new MySqlConnection(_connectionString);
